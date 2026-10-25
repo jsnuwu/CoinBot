@@ -28,7 +28,12 @@ async function loadStatus() {
     el('last-check').textContent = date(monitor.last_checked);
     el('latest-post').textContent = date(monitor.latest_post_at);
     el('feed-error').textContent = monitor.status === 'degraded'
-      ? 'X hat keine verwertbaren Daten geliefert oder die Verarbeitung ist fehlgeschlagen. Kein Wechsel auf eine bezahlte API. Angezeigte ältere Posts können veraltet sein.' : '';
+      ? 'Mindestens ein Account ist nicht verfügbar. Erreichbare Accounts werden weiter geprüft. Keine bezahlte Ersatz-API; ältere Posts können veraltet sein.' : '';
+    el('accounts').replaceChildren();
+    const accountLabels = {readable:'Daten geliefert',no_posts_returned:'Keine Posts geliefert',unavailable:'X-Zugriff derzeit nicht verfügbar',processing_error:'Verarbeitung fehlgeschlagen',starting:'Prüfung startet'};
+    for (const account of monitor.accounts || []) {
+      el('accounts').append(paragraph(`@${account.handle}: ${accountLabels[account.status] || account.status}. Nächste Prüfung: ${date(account.next_check_at)}`, 'muted small'));
+    }
     el('posts').replaceChildren();
     for (const post of (monitor.recent_posts || []).slice(0, 5)) {
       const article = document.createElement('article');

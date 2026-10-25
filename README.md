@@ -35,7 +35,7 @@ sind in getrennten Unterordnern abgelegt. Generierte Dateien sind von Git ausges
 ## Kostenlose Website lokal starten
 
 ```bash
-XPUMP_FREE_HOSTING=true XPUMP_PUBLIC_X_ACCOUNTS=realDonaldTrump:25073877 xpump web
+XPUMP_FREE_HOSTING=true XPUMP_PUBLIC_X_ACCOUNTS=realDonaldTrump:25073877,elonmusk:44196397 XPUMP_PUBLIC_X_POLL_SECONDS=60 xpump web
 ```
 
 Danach `http://localhost:8000` öffnen. Optional `PORT` setzen. Ohne `XPUMP_PUBLIC_X_ACCOUNTS` bleibt
@@ -58,9 +58,16 @@ Die geltenden Bedingungen der Quelle bleiben zu beachten.
 Nur passende neue Originalposts nach Prozessstart kommen in die automatische Vorschau. Alte Posts,
 Replies, Retweets, erkennbare Edits/Quotes und sensible Inhalte werden nicht als neuer Anlass behandelt.
 Die öffentliche Ansicht enthält nicht zwingend alle Informationen des offiziellen Streams.
-Voreinstellung im Render-Blueprint: `@realDonaldTrump`, höchstens fünf Minuten Post-Alter,
-zwei automatische Vorschläge je 24 Stunden und 15 Minuten Mindestabstand. Manuelle Vorschläge sind
-getrennt auf 20 Anfragen pro Minute begrenzt. Ein allgemeines lokales Cartoon-Template erzeugt Bilder;
+Account-Abfragen laufen parallel. Bei einem Fehler pausiert nur der betroffene Account (15–60 Minuten);
+andere werden weiter in ihrem Intervall abgefragt. Die Oberfläche zeigt den Status und nächsten
+Prüfzeitpunkt je Account. Beim Lesetest am 25.10.2026 war Trump erreichbar, der Musk-Zugriff wurde
+von X abgewiesen. Die Konfiguration eines Accounts ist somit kein Nachweis seiner Erreichbarkeit.
+Innerhalb eines Accounts bekommen die neuesten Posts zuerst Zugriff auf das Vorschlagslimit.
+Voreinstellung im Render-Blueprint: `@realDonaldTrump` und `@elonmusk`, jeweils mit festgelegter
+numerischer Account-ID, Abfrage alle 60 Sekunden und höchstens fünf Minuten Post-Alter. Maximal
+20 automatische Vorschläge je 24 Stunden, 60 Sekunden Mindestabstand und 200 Kandidatenprüfungen
+pro Tag; diese höheren Grenzen gelten für die kostenlosen Vorschläge, nicht als neue Geldfreigabe. Manuelle Vorschläge sind
+getrennt auf 20 Anfragen pro Minute begrenzt. Zehn lokale Cartoon-Motive erzeugen thematisch passende Bilder;
 der Vorlagenmodus ist keine KI und der Relevanzwert keine Gewinnwahrscheinlichkeit.
 
 ## Zusätzlich vorhandene CLI-Launch-Pipeline (nicht Teil des Gratisbetriebs)
@@ -71,8 +78,9 @@ der Vorlagenmodus ist keine KI und der Relevanzwert keine Gewinnwahrscheinlichke
 - SQLite verhindert mit persistentem Datenpfad erneute Verarbeitung auch nach Neustarts. Ein Edit ist kein zweiter Launch.
 - Lokaler Vorlagengenerator oder **echte lokale KI über Ollama**. Strikt geprüfte Felder für Name,
   Ticker, Motiv und Relevanz. Ein Score von 0,9 bedeutet keine 90-prozentige Gewinnchance.
-- Ein schnelles lokales Cartoon-PNG-Template mit unterschiedlichen Farben/Tickern. Kein generiertes
-  Promi-Bild; das freie KI-Motiv ist derzeit Text und wird noch nicht bildlich ausgerendert.
+- Zehn schnelle lokale PNG-Motive: Rakete, Katze, Hund, Kaffee, Taco, Pinguin, goldene Gans, Roboter,
+  Pizza und Paket. Erkannte Themen bestimmen Bild und Namen; keine Promi-Porträts oder Markenlogos.
+  Unbekannte Themen werden verworfen. Freie Ollama-Beschreibungen erhalten weiterhin das generische Motiv.
 - Beschreibung und Bild kennzeichnen den Coin als inoffizielles Community-Meme, ohne behauptete
   Empfehlung des Post-Autors. Namen wie „Official Trump“ werden abgewiesen. Filter sind konservative
   Regeln, keine lückenlose semantische Prüfung aller Namen oder Sprachen.
@@ -218,8 +226,8 @@ Einstellungen unter **Environment** (für dauerhafte Änderungen auch die Bluepr
 | Variable | Bedeutung / Vorgabe |
 | --- | --- |
 | `XPUMP_FREE_HOSTING` | `true`; verweigert Live-Modus, offiziellen X-Stream und KI-Providerwechsel |
-| `XPUMP_PUBLIC_X_ACCOUNTS` | `realDonaldTrump:25073877`; bis zu fünf `handle:numerische_id`-Paare, kommagetrennt |
-| `XPUMP_PUBLIC_X_POLL_SECONDS` | `120`, mindestens 60 Sekunden |
+| `XPUMP_PUBLIC_X_ACCOUNTS` | `realDonaldTrump:25073877,elonmusk:44196397`; bis zu fünf `handle:numerische_id`-Paare |
+| `XPUMP_PUBLIC_X_POLL_SECONDS` | `60` im Blueprint, mindestens 60 Sekunden |
 | `XPUMP_MAX_POST_AGE_SECONDS` | `300` im kostenlosen Blueprint |
 | `XPUMP_X_ENABLED` | `false`; damit ist nur der **bezahlte offizielle Stream** gemeint |
 | `XPUMP_MODE` / `XPUMP_ENABLE_MAINNET` | `preview` / `false` |
@@ -276,7 +284,7 @@ Budgetgrenzen, Neustarts/Deduplizierung, Kandidatenfilter, falsche Transaktionsd
 Transfers/Käufe, Prioritätsgebühren, Simulation, Sendetimeouts und Finalisierung. GitHub Actions führt
 Tests, Linter und Offline-Demo aus.
 
-Lokal verifiziert: **91 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
+Lokal verifiziert: **108 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
 inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Der Blueprint wurde gegen das offizielle Render-Schema
 validiert; manuelle Vorschläge ohne Netzwerkzugriff, experimenteller X-Reader und Web-Endpunkte getestet.
 Die öffentliche X-Ansicht wurde außerdem separat ohne API-Key gelesen (20 gelieferte Posts).

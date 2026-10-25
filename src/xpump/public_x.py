@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 import json
 import re
+import time
 
 import httpx
 
@@ -89,28 +90,57 @@ class PublicMonitor:
     def __init__(self, cfg, pipeline):
         self.cfg, self.pipeline = cfg, pipeline
         self.accounts = [tuple(a.strip().split(":")) for a in cfg.public_x_accounts.split(",") if a.strip()]
+        self.next_due = {handle: 0.0 for handle, _ in self.accounts}
+        self.failures = {handle: 0 for handle, _ in self.accounts}
+        self.account_state = {handle: {"handle": handle, "status": "starting"} for handle, _ in self.accounts}
+        self.recent = {}
         self.state = {"status": "starting" if self.accounts else "not_configured", "checks": 0,
                       "last_checked": None, "latest_post_at": None, "accounts": [], "recent_posts": []}
 
-    async def check(self, client):
-        results, recent, failed = [], [], False
-        for handle, author_id in self.accounts:
+    async def check(self, client, *, now=None):
+        now = time.time() if now is None else now
+        due = [(handle, author) for handle, author in self.accounts if self.next_due[handle] <= now]
+        if not due:
+            return self.state["status"] == "degraded"
+
+        async def read(handle, author_id):
             try:
-                posts = await read_timeline(client, handle, author_id)
+                return handle, await read_timeline(client, handle, author_id), None
+            except (PublicXError, httpx.HTTPError, UnicodeError):
+                return handle, [], "unavailable"
+            except Exception:
+                return handle, [], "processing_error"
+
+        # One limited account must not serialize network reads or stall another account's cadence.
+        for handle, posts, error in await asyncio.gather(*(read(h, a) for h, a in due)):
+            if error is None:
                 account = {"handle": handle, "status": "readable" if posts else "no_posts_returned",
                            "returned_posts": len(posts)}
-                for post in posts:
-                    outcome = await self.pipeline.process(post)
-                    recent.append({"id": post.id, "url": post.url, "handle": handle,
-                                   "created_at": post.created_at.isoformat(), "text": post.text[:600],
-                                   "result": outcome})
-                results.append(account)
-            except (PublicXError, httpx.HTTPError, UnicodeError):
-                failed = True
-                results.append({"handle": handle, "status": "unavailable"})
-            except Exception:
-                failed = True
-                results.append({"handle": handle, "status": "processing_error"})
+                recent = []
+                try:
+                    # Feed order can be pinned/unsorted. Give the newest eligible post first access to limits.
+                    for post in reversed(posts):
+                        outcome = await self.pipeline.process(post)
+                        recent.append({"id": post.id, "url": post.url, "handle": handle,
+                                       "created_at": post.created_at.isoformat(), "text": post.text[:600],
+                                       "result": outcome})
+                    self.recent[handle] = recent[:10]
+                except Exception:
+                    error = "processing_error"
+            if error:
+                account = {"handle": handle, "status": error}
+                self.failures[handle] += 1
+                delay = min(900 * 2 ** min(self.failures[handle] - 1, 2), 3600)
+            else:
+                self.failures[handle] = 0
+                delay = self.cfg.public_x_poll_seconds
+            self.next_due[handle] = now + delay
+            account.update({"last_checked": utcnow().isoformat(),
+                            "next_check_at": datetime.fromtimestamp(now + delay, timezone.utc).isoformat()})
+            self.account_state[handle] = account
+        results = list(self.account_state.values())
+        failed = any(a["status"] in ("unavailable", "processing_error") for a in results)
+        recent = [post for account_posts in self.recent.values() for post in account_posts]
         recent.sort(key=lambda p: p["created_at"], reverse=True)
         self.state.update({"status": "degraded" if failed else "polling", "checks": self.state["checks"] + 1,
                            "last_checked": utcnow().isoformat(), "accounts": results})
@@ -122,10 +152,9 @@ class PublicMonitor:
     async def run(self):
         if not self.accounts:
             return
-        delay = self.cfg.public_x_poll_seconds
         async with httpx.AsyncClient(timeout=15, follow_redirects=False) as client:
             while True:
-                failed = await self.check(client)
-                delay = min(max(900, delay * 2), 3600) if failed else self.cfg.public_x_poll_seconds
+                await self.check(client)
+                delay = max(1, min(self.next_due.values()) - time.time())
                 self.state["next_check_seconds"] = delay
                 await asyncio.sleep(delay)

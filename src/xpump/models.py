@@ -40,6 +40,7 @@ class Idea:
     symbol: str
     motif: str
     score: float
+    theme: str = "generic"
 
     def metadata(self, post: Post, image_uri: str):
         return {

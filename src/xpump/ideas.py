@@ -18,8 +18,11 @@ SENSITIVE_CONTENT = re.compile(r"\b(killed|dead|death|shooting|attack|war|suicid
 
 
 def validate_idea(data: dict) -> Idea:
-    if set(data) != {"name", "symbol", "motif", "score"}:
+    if not {"name", "symbol", "motif", "score"} <= set(data) or set(data) - {"name", "symbol", "motif", "score", "theme"}:
         raise ValueError("Unexpected idea fields")
+    if data.get("theme", "generic") not in {"generic", "space", "cat", "dog", "coffee", "taco", "penguin",
+                                           "gold", "robot", "pizza", "tariff"}:
+        raise ValueError("Unknown illustration theme")
     for field, pattern in (("name", r"[A-Za-z][A-Za-z0-9 ]{2,24}"),
                            ("symbol", r"[A-Z][A-Z0-9]{1,9}"),
                            ("motif", r"[A-Za-z][A-Za-z0-9 ,'-]{2,79}")):
@@ -35,24 +38,35 @@ def validate_idea(data: dict) -> Idea:
 class TemplateIdeas:
     """Predictable, network-free alternative; does not claim to be an LLM."""
     THEMES = (
-        (r"\b(moon|rocket|space|mars|mond|rakete)\b", "Lunar", "MOON", "a cartoon rocket eating popcorn"),
-        (r"\b(cat|cats|kitten|katze)\b", "Cosmic Cat", "CAT", "a cosmic cat watching the news"),
-        (r"\b(dog|dogs|doge|hund)\b", "Disco Dog", "DOG", "a dancing cartoon dog"),
-        (r"\b(coffee|covfefe|kaffee)\b", "Coffee Comet", "JAVA", "a coffee cup orbiting a comet"),
-        (r"\b(taco|tacos)\b", "Taco Orbit", "TACO", "a taco wearing space boots"),
-        (r"\b(penguin|penguins|pinguin)\b", "Pixel Penguin", "PENG", "a penguin with pixel sunglasses"),
-        (r"\b(gold|golden)\b", "Golden Goose", "GOOSE", "a cartoon goose with golden sneakers"),
-        (r"\b(robot|robots|roboter)\b", "Robot Raccoon", "ROBO", "a tiny robot raccoon"),
-        (r"\b(pizza)\b", "Pizza Planet", "PIZZA", "a pizza slice exploring a tiny planet"),
+        ("space", r"\b(moon|rocket|rockets|space|mars|mond|rakete|starship|spacex)\b", "Lunar", "MOON", "a smiling cartoon rocket"),
+        ("cat", r"\b(cat|cats|kitten|katze)\b", "Cosmic Cat", "CAT", "a wide-eyed cartoon cat"),
+        ("dog", r"\b(dog|dogs|doge|hund|shiba)\b", "Disco Dog", "DOG", "a floppy-eared cartoon dog"),
+        ("coffee", r"\b(coffee|covfefe|kaffee)\b", "Coffee Comet", "JAVA", "a cheerful steaming coffee cup"),
+        ("taco", r"\b(taco|tacos)\b", "Taco Orbit", "TACO", "a smiling taco with colorful filling"),
+        ("penguin", r"\b(penguin|penguins|pinguin)\b", "Pixel Penguin", "PENG", "a round cartoon penguin"),
+        ("gold", r"\b(gold|golden)\b", "Golden Goose", "GOOSE", "a golden cartoon goose"),
+        ("robot", r"\b(robot|robots|roboter|ai|artificial intelligence|optimus)\b", "Robot Raccoon", "ROBO", "a friendly robot with an antenna"),
+        ("pizza", r"\b(pizza)\b", "Pizza Planet", "PIZZA", "a smiling slice of pepperoni pizza"),
+        ("tariff", r"\b(tariff|tariffs|zoll|zölle)\b", "Parcel Party", "BOX", "a surprised cartoon shipping box"),
     )
 
     async def generate(self, post: Post):
-        for pattern, name, symbol, motif in self.THEMES:
-            if re.search(pattern, post.text, re.I):
-                suffix = hashlib.sha256(post.root_id.encode()).hexdigest()[:3].upper()
-                return validate_idea({"name": f"{name} {suffix}", "symbol": symbol + suffix,
-                                      "motif": motif, "score": 0.9})
-        return None
+        if SENSITIVE_CONTENT.search(post.text):
+            return None
+        text = re.sub(r"https?://\S+|@[A-Za-z0-9_]+", " ", post.text)
+        choices = []
+        for theme, pattern, name, symbol, motif in self.THEMES:
+            matches = list(re.finditer(pattern, text, re.I))
+            if matches:
+                # Distinct topical words first; ties follow the author's first mention.
+                choices.append((len({m.group().casefold() for m in matches}), -matches[0].start(),
+                                theme, name, symbol, motif))
+        if not choices:
+            return None
+        _, _, theme, name, symbol, motif = max(choices)
+        suffix = hashlib.sha256(post.root_id.encode()).hexdigest()[:5].upper()
+        return validate_idea({"name": f"{name} {suffix}", "symbol": symbol + suffix,
+                              "motif": motif, "score": 0.9, "theme": theme})
 
 
 class OllamaIdeas:

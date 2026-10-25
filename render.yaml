@@ -33,8 +33,14 @@ services:
       - key: XPUMP_IDEA_PROVIDER
         value: templates
       - key: XPUMP_PUBLIC_X_ACCOUNTS
-        value: realDonaldTrump:25073877
+        value: realDonaldTrump:25073877,elonmusk:44196397
       - key: XPUMP_PUBLIC_X_POLL_SECONDS
-        value: "120"
+        value: "60"
       - key: XPUMP_MAX_POST_AGE_SECONDS
         value: "300"
+      - key: XPUMP_MAX_LAUNCHES_24H
+        value: "20"
+      - key: XPUMP_MAX_CANDIDATES_24H
+        value: "200"
+      - key: XPUMP_COOLDOWN_SECONDS
+        value: "60"

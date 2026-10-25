@@ -69,8 +69,8 @@ async def test_public_monitor_generates_once_then_deduplicates(cfg, store):
     async def handler(request):
         return httpx.Response(200, text=embed(tweet()))
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        assert await monitor.check(client) is False
-        assert await monitor.check(client) is False
+        assert await monitor.check(client, now=1000) is False
+        assert await monitor.check(client, now=1120) is False
     assert monitor.state["checks"] == 2 and monitor.state["status"] == "polling"
     assert len(store.snapshot()["launches"]) == 1
     assert store.snapshot()["launches"][0]["status"] == "preview"
