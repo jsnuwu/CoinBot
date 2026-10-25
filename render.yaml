@@ -1,0 +1,35 @@
+# Paid worker: currently $7/month + $0.25/month for the 1 GB disk.
+# Creating this Blueprint provisions billable Render resources, even while idle.
+# No X requests or mainnet transactions with these defaults.
+services:
+  - type: worker
+    name: coinbot
+    runtime: python
+    plan: starter
+    region: frankfurt
+    branch: main
+    numInstances: 1
+    autoDeployTrigger: checksPass
+    buildCommand: pip install -r requirements.lock && pip install --no-deps .
+    startCommand: xpump run
+    disk:
+      name: coinbot-state
+      mountPath: /var/data/coinbot
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.12
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: XPUMP_DATA_DIR
+        value: /var/data/coinbot
+      - key: XPUMP_MODE
+        value: preview
+      - key: XPUMP_ENABLE_MAINNET
+        value: "false"
+      - key: XPUMP_X_ENABLED
+        value: "false"
+      - key: XPUMP_CONFIGURE_X_ON_START
+        value: "true"
+      - key: XPUMP_IDEA_PROVIDER
+        value: templates

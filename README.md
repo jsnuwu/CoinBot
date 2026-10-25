@@ -97,6 +97,16 @@ Quellen:
 4. Mit `xpump configure-x` die Filterregel anlegen, danach `xpump run` starten.
    Dieser Schritt nutzt den externen X-Zugang und ist nicht Teil der kostenlosen Offline-Demo.
 
+Alle Einstellungen aus `config.toml` lassen sich durch Umgebungsvariablen mit Präfix `XPUMP_`
+überschreiben, beispielsweise `XPUMP_AUTHOR_IDS=123,456`, `XPUMP_X_ENABLED=true` oder
+`XPUMP_MAX_LAUNCH_SOL=0.01`. Boolesche Werte müssen `true` oder `false` sein. Änderungen erfordern
+einen Neustart. `XPUMP_ENABLE_MAINNET` bleibt zusätzlich zum Live-Modus erforderlich.
+Mit `XPUMP_CONFIGURE_X_ON_START=true` verwaltet der Worker beim Start seine dedizierte X-Regel;
+fremde Regeln in derselben X-App führen weiterhin zum Abbruch.
+
+Bei deaktiviertem X-Zugang bleibt `xpump run` im Wartezustand mit Heartbeat. Im Preview-Modus
+werden dabei keine externen APIs aufgerufen. Das bedeutet „Prozess läuft“, nicht „X wird überwacht“.
+
 `mode = "preview"` lädt weder Bilder hoch noch erzeugt es eine Blockchain-Transaktion.
 Auch Preview berücksichtigt Cooldown, Häufigkeit und Relevanz. Standardmäßig maximal zwei Vorschläge
 innerhalb von 24 Stunden, 15 Minuten Abstand und maximal 60 Sekunden Post-Alter.
@@ -137,6 +147,46 @@ Limitverstoß aktiviert der Bot den Kill-Switch. Netzwerkgebühren können auch 
 Onchain-Transaktionen entstehen. SOL-Grenzen begrenzen weder X-/Pinata-Kosten noch Hostingkosten.
 
 ## Betrieb und Fehlersuche
+
+### Auf Render per Blueprint
+
+[`render.yaml`](render.yaml) liegt im Repository-Stamm. In Render **New → Blueprint** öffnen,
+`jsnuwu/CoinBot` verbinden, Branch `main` auswählen und vor **Deploy Blueprint** die Kostenübersicht
+prüfen. Alternativ: [Deploy to Render](https://render.com/deploy?repo=https://github.com/jsnuwu/CoinBot).
+
+Der Blueprint erstellt einen **kostenpflichtigen Background Worker** mit einer persistenten 1-GB-Disk.
+Nach [Render-Preisliste](https://render.com/pricing) am 25.10.2026 ungefähr **7,25 US-Dollar/Monat**
+(7 Dollar Compute + 0,25 Dollar Disk), zuzüglich eventueller Steuern, Zusatznutzung und externer APIs.
+Auch der reine Wartezustand kostet Hostinggebühren. Kostenlose Render-Webdienste bieten weder die
+benötigte dauerhafte Worker-Ausführung noch eine persistente Disk für dieses SQLite-Ledger.
+
+Der erste Deploy benötigt **keine API-Schlüssel und keine Wallet**. Er startet in `preview` mit
+deaktiviertem X-Zugang. In den Logs erscheint `X feed disabled: waiting for configuration`.
+Dies ist ein erfolgreicher, absichtlich inaktiver Start. Ein Worker hat keine öffentliche Website;
+über **Logs** und **Shell → `xpump status`** lässt sich der Zustand prüfen. Auto-Deploys warten
+auf erfolgreiche GitHub-CI-Prüfungen. Daten unter `/var/data/coinbot` überstehen Deploys/Neustarts.
+
+Wenn der X-Zugang samt Anbieter-Kostenlimit eingerichtet ist, im Render-Service unter **Environment**:
+
+| Variable | Wert |
+| --- | --- |
+| `X_BEARER_TOKEN` | Secret aus der dedizierten X-App |
+| `XPUMP_AUTHOR_IDS` | Gewünschte numerische X-Account-ID(s), mit Kommas getrennt |
+| `XPUMP_X_ENABLED` | `true` |
+
+Danach **Save, rebuild, and deploy**. Der Blueprint setzt bereits
+`XPUMP_CONFIGURE_X_ON_START=true`, sodass die X-Regel automatisch geprüft/angelegt wird.
+Diese drei Einstellungen aktivieren ausschließlich die Post-Verarbeitung im Preview-Modus,
+keine echten Coin-Launches. Bereits im Blueprint festgelegte Werte wie `XPUMP_X_ENABLED` auch
+in der YAML-Datei aktuell halten, wenn sie dauerhaft geändert werden: Ein späterer Blueprint-Sync
+kann Dashboard-Änderungen wieder durch den YAML-Wert ersetzen.
+
+Der kleine Render-Worker verwendet Vorlagen. Ein lokales Ollama-Modell ist dort nicht installiert
+und passt nicht sinnvoll in den vorgesehenen 512-MB-Arbeitsspeicher. Kein kostenpflichtiger KI-Dienst
+wird als Ersatz zugeschaltet. Die Voraussetzungen für echte Veröffentlichungen stehen oben;
+dieser Blueprint aktiviert sie ausdrücklich nicht.
+
+### Status und Stopps
 
 ```bash
 xpump status
@@ -184,8 +234,10 @@ Budgetgrenzen, Neustarts/Deduplizierung, Kandidatenfilter, falsche Transaktionsd
 Transfers/Käufe, Prioritätsgebühren, Simulation, Sendetimeouts und Finalisierung. GitHub Actions führt
 Tests, Linter und Offline-Demo aus.
 
-Lokal verifiziert: **58 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
-inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Kein Mainnet-Test ist darin enthalten.
+Lokal verifiziert: **66 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
+inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Der Blueprint wurde gegen das offizielle Render-Schema
+validiert und der Start ohne Secrets/Netzwerkzugriffe getestet. Kein Render-Deploy oder Mainnet-Test
+ist darin enthalten.
 
 Noch **nicht** mit einem finanzierten Mainnet-Launch oder echtem X-/Pinata-Zugang validiert. Der
 Transaktionsvalidator erlaubt nur die fixierten Create/Create-v2-Formate mit SOL als Quote, deaktiviertem

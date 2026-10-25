@@ -69,6 +69,8 @@ async def execute(args):
                 pipeline = Pipeline(cfg, store, TemplateIdeas(), started_at=now - timedelta(seconds=1))
                 print(json.dumps(await pipeline.process(Post(post_id, post_id, "1", "Coffee on the moon!", now)), indent=2))
                 return
+            if cfg.x_enabled and cfg.configure_x_on_start:
+                await configure_rules(cfg, client)
             ideas = (TemplateIdeas() if cfg.idea_provider == "templates" else
                      OllamaIdeas(client, cfg.ollama_model, cfg.ai_timeout_seconds))
             publisher = Publisher(cfg, store, client) if cfg.mode == "live" else None
@@ -76,9 +78,14 @@ async def execute(args):
             queue = asyncio.Queue(maxsize=32)
             store.health("mode", cfg.mode)
             store.health("started_at", utcnow().isoformat())
+            if not cfg.x_enabled:
+                store.health("feed", {"status": "disabled", "time": utcnow().isoformat()})
+                print("X feed disabled: waiting for configuration; no new posts or launches. "
+                      "Set XPUMP_AUTHOR_IDS, X_BEARER_TOKEN and XPUMP_X_ENABLED=true, then restart.", flush=True)
             try:
                 async with asyncio.TaskGroup() as group:
-                    group.create_task(stream(cfg, store, queue))
+                    if cfg.x_enabled:
+                        group.create_task(stream(cfg, store, queue))
                     group.create_task(worker(pipeline, queue))
             finally:
                 store.health("feed", {"status": "stopped", "time": utcnow().isoformat()})
