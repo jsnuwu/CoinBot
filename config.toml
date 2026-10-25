@@ -1,0 +1,25 @@
+# Preview is automatic too, but never uploads, signs or broadcasts a token.
+mode = "preview"
+data_dir = "data"
+author_ids = [] # Numeric X user IDs; no matching by mutable display names.
+max_post_age_seconds = 60
+min_score = 0.85 # Model/heuristic relevance score, NOT a probability of profit.
+cooldown_seconds = 900
+max_launches_24h = 2
+max_candidates_24h = 30
+
+# Explicit caps must be supplied before live mode can start. SOL, not fiat.
+max_launch_sol = "0"
+max_24h_sol = "0"
+max_total_sol = "0"
+wallet_reserve_sol = "0.01"
+priority_fee_sol = "0.00001"
+
+# templates: deterministic local demo/fallback, not an AI model.
+# ollama: optional actual local LLM at http://127.0.0.1:11434.
+idea_provider = "templates"
+ollama_model = "qwen3:4b"
+ai_timeout_seconds = 8
+
+# Off by default because the official X stream can incur provider charges.
+x_enabled = false
