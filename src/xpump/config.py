@@ -37,12 +37,28 @@ class Config:
     ai_timeout_seconds: int = 8
     x_enabled: bool = False
     configure_x_on_start: bool = False
+    free_hosting: bool = False
+    public_x_accounts: str = ""
+    public_x_poll_seconds: int = 120
 
     def __post_init__(self):
         if self.mode not in ("preview", "live") or self.idea_provider not in ("templates", "ollama"):
             raise ValueError("Unknown operating mode or idea provider")
         if type(self.x_enabled) is not bool or type(self.configure_x_on_start) is not bool:
             raise ValueError("X flags must be booleans")
+        if type(self.free_hosting) is not bool:
+            raise ValueError("free_hosting must be a boolean")
+        if self.free_hosting and (self.mode != "preview" or self.x_enabled or self.idea_provider != "templates"):
+            raise ValueError("Free hosting permits preview/templates only, without the paid X API")
+        if type(self.public_x_poll_seconds) is not int or self.public_x_poll_seconds < 60:
+            raise ValueError("Public X polling must be at least 60 seconds")
+        if self.public_x_accounts and self.mode != "preview":
+            raise ValueError("Experimental public X source is preview-only")
+        if self.public_x_accounts:
+            accounts = self.public_x_accounts.split(",")
+            if len(accounts) > 5 or any(not re.fullmatch(r"[A-Za-z0-9_]{1,15}:[0-9]{1,24}", a.strip())
+                                        for a in accounts):
+                raise ValueError("Use up to five handle:numeric_id entries for public X accounts")
         if not math.isfinite(self.min_score) or not 0 <= self.min_score <= 1:
             raise ValueError("min_score must be between zero and one")
         for name in ("max_post_age_seconds", "max_launches_24h", "max_candidates_24h", "ai_timeout_seconds"):

@@ -1,8 +1,13 @@
 # X → Pump Launch Bot
 
-Eigenständiger Bot, getrennt von TradeBot. Er überwacht ausgewählte X-Accounts und kann nach festen
-Regeln automatisch einen Meme-Token vorbereiten und auf Solana veröffentlichen. **Keine Telegram-Freigabe
-pro Coin. Standard ist ein lokaler Preview-Modus; aktuell ist kein produktiver Dienst aktiviert.**
+Eigenständiger Bot, getrennt von TradeBot. Der aktuelle Render-Blueprint startet eine **kostenlose
+Preview-Webseite** mit experimenteller Beobachtung öffentlicher X-Einbettungsansichten. Er bereitet
+Meme-Namen, Ticker, Beschreibung und PNG vor. Kein API-Key und keine Wallet erforderlich.
+
+**Ein verlässlicher 24/7-Sekunden-Launcher mit echten Onchain-Tokens für 0 € ist damit nicht erreicht.**
+Render Free schläft bei Inaktivität ein, X garantiert die öffentliche Ansicht nicht, und echte
+Solana-Veröffentlichungen können Gebühren kosten. Die Website kann deshalb keine Tokens veröffentlichen.
+Die frühere CLI-Launch-Pipeline bleibt als getrennte, standardmäßig deaktivierte Funktion im Code.
 
 Token-Erstellung ist kein Geschäftsmodell mit garantierten Einnahmen. Ein Launch erzeugt weder Käufer
 noch Handelsvolumen. Dieses Projekt enthält keine künstlichen Käufe, Eigenkäufe, Volumenmanipulation,
@@ -27,12 +32,43 @@ Es nutzt **keine APIs, keine Wallet und kein KI-Abonnement**, selbst wenn die Ko
 Live-Einstellungen enthält. Installation lädt Python-Pakete herunter. Demo-, Preview- und Live-Zustand
 sind in getrennten Unterordnern abgelegt. Generierte Dateien sind von Git ausgeschlossen.
 
-## Was eingebaut ist
+## Kostenlose Website lokal starten
+
+```bash
+XPUMP_FREE_HOSTING=true XPUMP_PUBLIC_X_ACCOUNTS=realDonaldTrump:25073877 xpump web
+```
+
+Danach `http://localhost:8000` öffnen. Optional `PORT` setzen. Ohne `XPUMP_PUBLIC_X_ACCOUNTS` bleibt
+die Beobachtung aus; das manuelle Erstellen von Vorschlägen funktioniert trotzdem ohne Netzwerkzugriff.
+Die automatische Beobachtung prüft standardmäßig alle 120 Sekunden. Die Website zeigt Prüfzeit,
+gelieferte Post-Zeit und Quellenfehler getrennt an. Eingefügter Text wird ausdrücklich als Nutzereingabe
+gekennzeichnet und nicht als von X verifiziert ausgegeben. PNG und Metadaten lassen sich herunterladen.
+
+### Kostenloser X-Zugriff: experimentell
+
+Der Reader lädt die öffentliche [X-Einbettungsansicht](https://syndication.twitter.com/srv/timeline-profile/screen-name/realDonaldTrump),
+prüft Handle **und** numerische Account-ID und wertet eingebettete Post-Daten aus. Dieser Zugriff wurde
+am 25.10.2026 ohne Anmeldung mit tatsächlich gelieferten Posts geprüft. Er ist **keine dokumentierte
+Echtzeit-Daten-API**: X kann Inhalt, Caching, Vollständigkeit und Zugriff jederzeit ändern. Er kann
+auf Render anders reagieren als in der Entwicklungsumgebung. Sichtbare alte Posts sind kein Nachweis,
+dass neue Posts zeitnah eintreffen. Bei fehlenden Daten, Login-Hürde oder Rate-Limit meldet der Bot die
+Störung und wartet mindestens 15 Minuten; keine Cookies, Login-Umgehung, Proxyrotation oder bezahlte Ersatz-API.
+Die geltenden Bedingungen der Quelle bleiben zu beachten.
+
+Nur passende neue Originalposts nach Prozessstart kommen in die automatische Vorschau. Alte Posts,
+Replies, Retweets, erkennbare Edits/Quotes und sensible Inhalte werden nicht als neuer Anlass behandelt.
+Die öffentliche Ansicht enthält nicht zwingend alle Informationen des offiziellen Streams.
+Voreinstellung im Render-Blueprint: `@realDonaldTrump`, höchstens fünf Minuten Post-Alter,
+zwei automatische Vorschläge je 24 Stunden und 15 Minuten Mindestabstand. Manuelle Vorschläge sind
+getrennt auf 20 Anfragen pro Minute begrenzt. Ein allgemeines lokales Cartoon-Template erzeugt Bilder;
+der Vorlagenmodus ist keine KI und der Relevanzwert keine Gewinnwahrscheinlichkeit.
+
+## Zusätzlich vorhandene CLI-Launch-Pipeline (nicht Teil des Gratisbetriebs)
 
 - Offizieller X Filtered Stream mit Reconnect/Backoff, begrenzter Queue und Heartbeat.
 - Erkennung über unveränderliche Account-IDs; keine nachgeahmten Anzeigenamen.
 - Nur neue Originalposts: keine alten Posts beim Start, keine Antworten, Reposts, Quotes oder Edits.
-- SQLite verhindert erneute Verarbeitung auch nach Neustarts. Ein Edit ist kein zweiter Launch.
+- SQLite verhindert mit persistentem Datenpfad erneute Verarbeitung auch nach Neustarts. Ein Edit ist kein zweiter Launch.
 - Lokaler Vorlagengenerator oder **echte lokale KI über Ollama**. Strikt geprüfte Felder für Name,
   Ticker, Motiv und Relevanz. Ein Score von 0,9 bedeutet keine 90-prozentige Gewinnchance.
 - Ein schnelles lokales Cartoon-PNG-Template mit unterschiedlichen Farben/Tickern. Kein generiertes
@@ -47,7 +83,7 @@ sind in getrennten Unterordnern abgelegt. Generierte Dateien sind von Git ausges
   abgeschlossen. Bei unbekanntem Ausgang sind weitere Launches gesperrt.
 - CLI-Status mit letzten Entscheidungen, Heartbeats, Erkennungs-/Vorbereitungszeiten und Launch-Adressen.
 
-Der normale Lauf ist automatisch: X-Stream → Regelprüfung → Idee → Bild/Metadaten → Budgetreservierung
+Der separat aktivierte CLI-Live-Lauf ist automatisch: X-Stream → Regelprüfung → Idee → Bild/Metadaten → Budgetreservierung
 → Transaktionsprüfung/Simulation → Senden → Finalisierung. Ein einzelner Worker verarbeitet die
 Wallet-Operationen seriell; der Stream liest gleichzeitig weiter. Queue maximal 32 Posts, ältere
 Ereignisse werden bei Überlast verworfen. Geschwindigkeit rechtfertigt keine doppelten Launches.
@@ -60,7 +96,8 @@ Prüfstand 25.10.2026, keine Preisgarantie:
 | --- | --- |
 | Demo, Bilder, Vorlagen | Lokal ohne API-Gebühren |
 | Lokale KI | Ollama ohne Gebühren pro Anfrage; benötigt eigenen Rechner/RAM/Strom |
-| X-Daten | Offizieller Stream ist Pay-per-use; Zugang und Kostenlimit im X Developer Console nötig |
+| Öffentliche X-Ansicht | Ohne API-Key, experimentell und ohne Verfügbarkeits-/Latenzgarantie |
+| Offizieller X-Stream | Pay-per-use; im Gratisprofil gesperrt |
 | Metadaten | Pinata bietet einen Free-Tarif mit Limits; gültiger JWT erforderlich |
 | PumpPortal-Erstellung | Laut Anbieter keine zusätzliche Creation-Gebühr; Handelsgebühren bei initialem Kauf, den dieser Bot nicht ausführt |
 | Solana-Veröffentlichung | Netzwerk-/Prioritätsgebühren und benötigte Account-Einlagen; keine Nullkosten-Zusage |
@@ -86,7 +123,7 @@ Quellen:
 - [Pump-Programm-IDL](https://github.com/pump-fun/pump-public-docs/blob/639b87fb45c3adeffa6f7c4a1bf0cb85e392bf22/idl/pump.json),
   auf diesen Commit fixierter Create-Ausschnitt in `src/xpump/pump_create.json`.
 
-## Eigene Posts im Preview-Modus verfolgen
+## Optionaler offizieller X-Stream außerhalb des Gratisprofils
 
 1. Eigenen zulässigen X-API-Zugang einrichten. Für dieses Projekt eine dedizierte X-App nutzen, damit
    keine fremden Stream-Regeln Traffic und Gebühren erzeugen. Ausgabenlimit im Anbieterportal setzen;
@@ -117,10 +154,12 @@ Das Modell muss beim Start verfügbar sein; keine automatische Modellinstallatio
 Cloud-Ausweichroute. Bei Ausfall/ungültiger Ausgabe kein Launch. Standard `templates` ist regelbasiert,
 **keine vorgetäuschte KI**. Der Ollama-Endpunkt ist fest auf `127.0.0.1:11434` begrenzt.
 
-## Echtgeld-Veröffentlichungen: vorbereitet, noch nicht aktiviert
+## Echtgeld-Veröffentlichungen: außerhalb des Gratisprofils, nicht aktiviert
 
 Vor dem ersten Live-Lauf müssen der gewünschte Account, Datenzugang und SOL-Kostenrahmen feststehen.
-Die mitgelieferte Konfiguration enthält bewusst keine freigegebenen Geldbeträge.
+Die mitgelieferte Konfiguration enthält bewusst keine freigegebenen Geldbeträge. Das Gratisprofil
+und die öffentliche X-Quelle erlauben diesen Betrieb nicht; dafür müsste außerhalb dieses Profils
+ein separater Betrieb mit dauerhaftem Speicher und freigegebenen Kosten eingerichtet werden.
 
 Erforderlich:
 
@@ -148,43 +187,46 @@ Onchain-Transaktionen entstehen. SOL-Grenzen begrenzen weder X-/Pinata-Kosten no
 
 ## Betrieb und Fehlersuche
 
-### Auf Render per Blueprint
+### Auf Render per kostenlosem Blueprint
 
-[`render.yaml`](render.yaml) liegt im Repository-Stamm. In Render **New → Blueprint** öffnen,
-`jsnuwu/CoinBot` verbinden, Branch `main` auswählen und vor **Deploy Blueprint** die Kostenübersicht
-prüfen. Alternativ: [Deploy to Render](https://render.com/deploy?repo=https://github.com/jsnuwu/CoinBot).
+[`render.yaml`](render.yaml) definiert ausschließlich **einen Webservice mit `plan: free`** namens
+`coinbot-free`. Kein kostenpflichtiger Worker, keine Disk, keine Datenbank, kein API-Key.
+[Deploy to Render](https://render.com/deploy?repo=https://github.com/jsnuwu/CoinBot) öffnen oder in Render
+**New → Blueprint → jsnuwu/CoinBot → main** auswählen. Vor dem Bestätigen kontrollieren, dass der Dienst
+als **Free / 0 Dollar** ausgewiesen wird. Der vorherige kostenpflichtige Blueprint wurde ersetzt.
+Falls daraus bereits ein bezahlter Worker angelegt wurde, wird dieser durch den neuen Code nicht
+automatisch gelöscht oder kostenlos; ihn separat im Render-Dashboard entfernen, wenn ungenutzt.
 
-Der Blueprint erstellt einen **kostenpflichtigen Background Worker** mit einer persistenten 1-GB-Disk.
-Nach [Render-Preisliste](https://render.com/pricing) am 25.10.2026 ungefähr **7,25 US-Dollar/Monat**
-(7 Dollar Compute + 0,25 Dollar Disk), zuzüglich eventueller Steuern, Zusatznutzung und externer APIs.
-Auch der reine Wartezustand kostet Hostinggebühren. Kostenlose Render-Webdienste bieten weder die
-benötigte dauerhafte Worker-Ausführung noch eine persistente Disk für dieses SQLite-Ledger.
+Nach dem Deploy die angezeigte `onrender.com`-Adresse öffnen. Die öffentliche X-Abfrage startet
+selbstständig und die Website zeigt echte Prüfzeiten. Kein Bank-/API-Schlüssel wird vom Bot benötigt.
+Eine eventuelle Konto-/Zahlungsmittel-Verifizierung durch Render kann der Code nicht umgehen.
 
-Der erste Deploy benötigt **keine API-Schlüssel und keine Wallet**. Er startet in `preview` mit
-deaktiviertem X-Zugang. In den Logs erscheint `X feed disabled: waiting for configuration`.
-Dies ist ein erfolgreicher, absichtlich inaktiver Start. Ein Worker hat keine öffentliche Website;
-über **Logs** und **Shell → `xpump status`** lässt sich der Zustand prüfen. Auto-Deploys warten
-auf erfolgreiche GitHub-CI-Prüfungen. Daten unter `/var/data/coinbot` überstehen Deploys/Neustarts.
+[Render-Free-Grenzen](https://render.com/docs/free):
 
-Wenn der X-Zugang samt Anbieter-Kostenlimit eingerichtet ist, im Render-Service unter **Environment**:
+- Nach etwa 15 Minuten ohne eingehenden Verkehr schläft der Dienst; währenddessen keine Beobachtung.
+  Aufwecken per Seitenaufruf kann ungefähr eine Minute dauern. Keine künstlichen Keep-alive-Pings.
+- 750 kostenlose Instanzstunden pro Workspace und Monat werden mit anderen Free-Webdiensten geteilt.
+  Zwei dauerhaft aktive Free-Dienste passen nicht beide rund um die Uhr in dieses Kontingent.
+- Serverdateien unter `/tmp/coinbot` können bei Sleep, Neustart oder Deploy verschwinden. Vorschläge
+  herunterladen. Der Neustart holt keine alten Posts nach; es gibt hier kein Echtgeld-Budgetledger.
+- Bandbreiten-/Build-Kontingente beachten. Render kann bei Überschreitung und hinterlegter Zahlungsmethode
+  Zusatznutzung abrechnen; ohne Zahlungsmethode werden Free-Dienste bzw. weitere Builds gemäß Anbieterregeln
+  ausgesetzt. Ein kostenfreier Blueprint ist keine Garantie gegen jede mögliche Kontorechnung.
 
-| Variable | Wert |
+Einstellungen unter **Environment** (für dauerhafte Änderungen auch die Blueprint-YAML anpassen):
+
+| Variable | Bedeutung / Vorgabe |
 | --- | --- |
-| `X_BEARER_TOKEN` | Secret aus der dedizierten X-App |
-| `XPUMP_AUTHOR_IDS` | Gewünschte numerische X-Account-ID(s), mit Kommas getrennt |
-| `XPUMP_X_ENABLED` | `true` |
+| `XPUMP_FREE_HOSTING` | `true`; verweigert Live-Modus, offiziellen X-Stream und KI-Providerwechsel |
+| `XPUMP_PUBLIC_X_ACCOUNTS` | `realDonaldTrump:25073877`; bis zu fünf `handle:numerische_id`-Paare, kommagetrennt |
+| `XPUMP_PUBLIC_X_POLL_SECONDS` | `120`, mindestens 60 Sekunden |
+| `XPUMP_MAX_POST_AGE_SECONDS` | `300` im kostenlosen Blueprint |
+| `XPUMP_X_ENABLED` | `false`; damit ist nur der **bezahlte offizielle Stream** gemeint |
+| `XPUMP_MODE` / `XPUMP_ENABLE_MAINNET` | `preview` / `false` |
 
-Danach **Save, rebuild, and deploy**. Der Blueprint setzt bereits
-`XPUMP_CONFIGURE_X_ON_START=true`, sodass die X-Regel automatisch geprüft/angelegt wird.
-Diese drei Einstellungen aktivieren ausschließlich die Post-Verarbeitung im Preview-Modus,
-keine echten Coin-Launches. Bereits im Blueprint festgelegte Werte wie `XPUMP_X_ENABLED` auch
-in der YAML-Datei aktuell halten, wenn sie dauerhaft geändert werden: Ein späterer Blueprint-Sync
-kann Dashboard-Änderungen wieder durch den YAML-Wert ersetzen.
-
-Der kleine Render-Worker verwendet Vorlagen. Ein lokales Ollama-Modell ist dort nicht installiert
-und passt nicht sinnvoll in den vorgesehenen 512-MB-Arbeitsspeicher. Kein kostenpflichtiger KI-Dienst
-wird als Ersatz zugeschaltet. Die Voraussetzungen für echte Veröffentlichungen stehen oben;
-dieser Blueprint aktiviert sie ausdrücklich nicht.
+Die kostenlose Website importiert keine Publisher-/Wallet-Funktion und besitzt keinen Launch-Endpunkt.
+`xpump web` lehnt Live-Konfigurationen auch unabhängig vom Gratis-Schalter ab. Für den Gratisbetrieb
+keine Wallet-Secrets hinterlegen. Die kleine Instanz nutzt lokale Vorlagen; Ollama ist dort nicht installiert.
 
 ### Status und Stopps
 
@@ -234,12 +276,14 @@ Budgetgrenzen, Neustarts/Deduplizierung, Kandidatenfilter, falsche Transaktionsd
 Transfers/Käufe, Prioritätsgebühren, Simulation, Sendetimeouts und Finalisierung. GitHub Actions führt
 Tests, Linter und Offline-Demo aus.
 
-Lokal verifiziert: **66 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
+Lokal verifiziert: **91 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
 inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Der Blueprint wurde gegen das offizielle Render-Schema
-validiert und der Start ohne Secrets/Netzwerkzugriffe getestet. Kein Render-Deploy oder Mainnet-Test
+validiert; manuelle Vorschläge ohne Netzwerkzugriff, experimenteller X-Reader und Web-Endpunkte getestet.
+Die öffentliche X-Ansicht wurde außerdem separat ohne API-Key gelesen (20 gelieferte Posts).
+Desktop-/Mobilansicht, PNG-Vorschau und JSON-Download wurden im Browser ohne JavaScript-Fehler geprüft. Kein Render-Deploy oder Mainnet-Test
 ist darin enthalten.
 
-Noch **nicht** mit einem finanzierten Mainnet-Launch oder echtem X-/Pinata-Zugang validiert. Der
+Noch **nicht** mit einem finanzierten Mainnet-Launch, offiziellem X-API-Zugang oder Pinata-Upload validiert. Der
 Transaktionsvalidator erlaubt nur die fixierten Create/Create-v2-Formate mit SOL als Quote, deaktiviertem
 Mayhem/Cashback/Holder-Reward und ohne weitere Instruktionen außer begrenztem Compute Budget. Lookup Tables,
 Tips, Eigenkäufe, neue Protokollformate oder unbekannte Accounts werden abgelehnt. Die tatsächliche

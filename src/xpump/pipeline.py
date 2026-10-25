@@ -1,10 +1,10 @@
 from dataclasses import asdict
 from datetime import datetime
 import json
-import re
 import time
 
 from .art import render
+from .ideas import SENSITIVE_CONTENT
 from .models import utcnow
 from .store import Blocked
 
@@ -29,8 +29,7 @@ class Pipeline:
         if not post.text.strip():
             return "empty_post"
         # Conservative prefilter applies even to the local template provider.
-        if re.search(r"\b(killed|dead|death|shooting|attack|war|suicide|murder|rape|"
-                     r"private key|seed phrase|guaranteed profit)\b", post.text, re.I):
+        if SENSITIVE_CONTENT.search(post.text):
             return "sensitive_content"
         if (self.store.root / "STOP").exists():
             return "kill_switch"

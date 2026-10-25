@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CoinBot · Free Preview</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><a class="brand" href="/">CoinBot<span>FREE PREVIEW</span></a><span class="badge">Keine Wallet verbunden</span></header>
+    <section class="intro"><p class="eyebrow">VOM POST ZUR MEME-IDEE</p><h1>Ideen finden.<br>Ohne API-Rechnung.</h1>
+      <p>Öffentliche X-Posts prüfen, Meme-Vorschläge vorbereiten und Bilder herunterladen.
+      Die Erstellung nutzt lokale Vorlagen. Hier wird kein echter Coin veröffentlicht.</p>
+    </section>
+    <section class="notice" aria-label="Betriebsgrenzen"><strong>Was kostenlos funktioniert</strong>
+      <p>Die X-Einbettungsansicht wird experimentell abgefragt – ohne API-Key und ohne garantierte Aktualität.
+      Render Free schläft nach Inaktivität ein; dann pausiert die Überwachung. Solana-Launches sind hier deaktiviert.</p>
+    </section>
+    <div class="columns">
+      <section class="panel"><div class="section-head"><h2>X-Beobachtung</h2><span id="feed-status" class="badge">Verbinde …</span></div>
+        <p id="feed-detail" class="muted">Lade den tatsächlichen Dienststatus.</p>
+        <dl><div><dt>Letzte Prüfung</dt><dd id="last-check">–</dd></div><div><dt>Neuester gelieferter Post</dt><dd id="latest-post">–</dd></div></dl>
+        <p id="feed-error" role="status"></p><div id="posts" class="list"></div>
+        <p class="muted small">Alte Posts sind zur Ansicht da. Automatische Vorschläge entstehen nur aus neuen, passenden Originalposts nach dem Start.</p>
+      </section>
+      <section class="panel"><h2>Post selbst ausprobieren</h2><p class="muted">Text einfügen oder links einen gelieferten X-Post übernehmen.</p>
+        <form id="preview-form">
+          <label for="post-text">Post-Text</label><textarea id="post-text" maxlength="4000" rows="6" required placeholder="Zum Beispiel: Coffee on the moon!"></textarea>
+          <label for="post-url">X-Link <span class="muted">(optional)</span></label><input id="post-url" type="url" placeholder="https://x.com/name/status/…">
+          <div class="actions"><button id="generate" type="submit">Vorschlag erstellen</button><button id="demo" class="secondary" type="button">Beispieltext einsetzen</button></div>
+        </form><p id="form-status" role="status" aria-live="polite"></p>
+        <article id="result" hidden><img id="meme" alt="Generiertes Cartoon-Meme mit Ticker und Kennzeichnung als inoffizielles Community-Meme">
+          <h3 id="coin-name"></h3><p id="coin-description"></p><p id="origin" class="muted small"></p>
+          <div class="actions"><a id="download-image" class="button" download="meme.png">PNG speichern</a><button id="download-json" class="secondary" type="button">Metadaten speichern</button></div>
+        </article>
+      </section>
+    </div>
+    <section class="panel"><h2>Automatisch vorbereitete Vorschläge</h2><div id="previews" class="list"><p class="muted">Noch keine Daten geladen.</p></div>
+      <p class="muted small">Auf Render Free ist der Serverspeicher temporär. Vorschläge herunterladen, wenn du sie behalten möchtest.</p></section>
+    <footer>Vorschläge sind keine Gewinnprognose. Kein offizieller Token oder eine Empfehlung des jeweiligen Post-Autors.</footer>
+  </main>
+</body>
+</html>

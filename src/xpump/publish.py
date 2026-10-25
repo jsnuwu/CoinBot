@@ -20,7 +20,7 @@ from .transaction import validate_transaction
 
 class Publisher:
     def __init__(self, cfg, store, client: httpx.AsyncClient):
-        if cfg.mode != "live" or os.getenv("XPUMP_ENABLE_MAINNET") != "true":
+        if cfg.free_hosting or cfg.mode != "live" or os.getenv("XPUMP_ENABLE_MAINNET") != "true":
             raise Blocked("mainnet_not_enabled")
         missing = [key for key in ("SOLANA_RPC_URL", "PINATA_JWT", "XPUMP_WALLET_FILE") if not os.getenv(key)]
         if missing:

@@ -23,3 +23,8 @@ ai_timeout_seconds = 8
 
 # Off by default because the official X stream can incur provider charges.
 x_enabled = false
+
+# Optional website/public embed preview. Render sets these via environment variables.
+free_hosting = false
+public_x_accounts = ""
+public_x_poll_seconds = 120

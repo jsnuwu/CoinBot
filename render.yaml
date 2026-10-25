@@ -1,28 +1,27 @@
-# Paid worker: currently $7/month + $0.25/month for the 1 GB disk.
-# Creating this Blueprint provisions billable Render resources, even while idle.
-# No X requests or mainnet transactions with these defaults.
+# Free web service: no paid worker, disk or database.
+# Render can sleep this service and discard its local preview files.
+# Public X embed polling is experimental; real token launches are disabled.
 services:
-  - type: worker
-    name: coinbot
+  - type: web
+    name: coinbot-free
     runtime: python
-    plan: starter
+    plan: free
     region: frankfurt
     branch: main
     numInstances: 1
     autoDeployTrigger: checksPass
     buildCommand: pip install -r requirements.lock && pip install --no-deps .
-    startCommand: xpump run
-    disk:
-      name: coinbot-state
-      mountPath: /var/data/coinbot
-      sizeGB: 1
+    startCommand: xpump web
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.12
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: XPUMP_DATA_DIR
-        value: /var/data/coinbot
+        value: /tmp/coinbot
+      - key: XPUMP_FREE_HOSTING
+        value: "true"
       - key: XPUMP_MODE
         value: preview
       - key: XPUMP_ENABLE_MAINNET
@@ -30,6 +29,12 @@ services:
       - key: XPUMP_X_ENABLED
         value: "false"
       - key: XPUMP_CONFIGURE_X_ON_START
-        value: "true"
+        value: "false"
       - key: XPUMP_IDEA_PROVIDER
         value: templates
+      - key: XPUMP_PUBLIC_X_ACCOUNTS
+        value: realDonaldTrump:25073877
+      - key: XPUMP_PUBLIC_X_POLL_SECONDS
+        value: "120"
+      - key: XPUMP_MAX_POST_AGE_SECONDS
+        value: "300"

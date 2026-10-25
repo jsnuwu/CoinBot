@@ -94,9 +94,16 @@ async def execute(args):
 def main():
     parser = argparse.ArgumentParser(description="Automatic, rule-bound X-to-Pump.fun launcher")
     parser.add_argument("--config", default=os.getenv("XPUMP_CONFIG", "config.toml"))
-    parser.add_argument("command", choices=("demo", "run", "status", "stop", "configure-x"))
+    parser.add_argument("command", choices=("demo", "run", "status", "stop", "configure-x", "web"))
     args = parser.parse_args()
     try:
+        if args.command == "web":
+            import uvicorn
+            from .web import create_app
+            cfg = Config.load(args.config)
+            uvicorn.run(create_app(cfg), host="0.0.0.0", port=int(os.getenv("PORT", "8000")),
+                        access_log=False, limit_concurrency=32)
+            return
         asyncio.run(execute(args))
     except KeyboardInterrupt:
         pass

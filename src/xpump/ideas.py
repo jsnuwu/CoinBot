@@ -13,6 +13,8 @@ FORBIDDEN = re.compile(
     r"trump|donald|official|endors|president|white.?house|maga|guarantee|profit|risk.?free|"
     r"investment|airdrop|claim|https?|www|wallet|seed|private.?key|fuck|shit", re.I
 )
+SENSITIVE_CONTENT = re.compile(r"\b(killed|dead|death|shooting|attack|war|suicide|murder|rape|"
+                               r"private key|seed phrase|guaranteed profit)\b", re.I)
 
 
 def validate_idea(data: dict) -> Idea:
@@ -33,10 +35,15 @@ def validate_idea(data: dict) -> Idea:
 class TemplateIdeas:
     """Predictable, network-free alternative; does not claim to be an LLM."""
     THEMES = (
-        (r"\b(moon|rocket|space|mars)\b", "Lunar", "MOON", "a cartoon rocket eating popcorn"),
-        (r"\b(cat|cats|kitten)\b", "Cosmic Cat", "CAT", "a cosmic cat watching the news"),
-        (r"\b(dog|dogs|doge)\b", "Disco Dog", "DOG", "a dancing cartoon dog"),
-        (r"\b(coffee|covfefe)\b", "Coffee Comet", "JAVA", "a coffee cup orbiting a comet"),
+        (r"\b(moon|rocket|space|mars|mond|rakete)\b", "Lunar", "MOON", "a cartoon rocket eating popcorn"),
+        (r"\b(cat|cats|kitten|katze)\b", "Cosmic Cat", "CAT", "a cosmic cat watching the news"),
+        (r"\b(dog|dogs|doge|hund)\b", "Disco Dog", "DOG", "a dancing cartoon dog"),
+        (r"\b(coffee|covfefe|kaffee)\b", "Coffee Comet", "JAVA", "a coffee cup orbiting a comet"),
+        (r"\b(taco|tacos)\b", "Taco Orbit", "TACO", "a taco wearing space boots"),
+        (r"\b(penguin|penguins|pinguin)\b", "Pixel Penguin", "PENG", "a penguin with pixel sunglasses"),
+        (r"\b(gold|golden)\b", "Golden Goose", "GOOSE", "a cartoon goose with golden sneakers"),
+        (r"\b(robot|robots|roboter)\b", "Robot Raccoon", "ROBO", "a tiny robot raccoon"),
+        (r"\b(pizza)\b", "Pizza Planet", "PIZZA", "a pizza slice exploring a tiny planet"),
     )
 
     async def generate(self, post: Post):
