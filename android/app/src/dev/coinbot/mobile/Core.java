@@ -58,9 +58,8 @@ public final class Core {
     }
     public static final class Idea {
         public final String name, ticker, theme, description;
-        Idea(String name, String ticker, String theme) { this.name = name; this.ticker = ticker; this.theme = theme;
-            this.description = "Independent community meme inspired by " + theme + ". Unofficial; not affiliated with or endorsed by the post author. No promised value or returns.";
-        }
+        Idea(String name, String ticker, String theme) { this(name,ticker,theme,"Independent community meme inspired by " + theme + ". Unofficial; not affiliated with or endorsed by the post author. No promised value or returns."); }
+        Idea(String name,String ticker,String theme,String description){this.name=name;this.ticker=ticker;this.theme=theme;this.description=description;}
     }
     public static final class NotificationDraft {
         public final String id, author, text;

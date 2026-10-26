@@ -4,7 +4,6 @@ import android.app.Notification;
 import android.content.*;
 import android.os.Bundle;
 import android.service.notification.*;
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -42,6 +41,12 @@ public final class XListener extends NotificationListenerService {
         NotificationLinks links=new NotificationLinks(n,event.getTag());
         Core.Candidate candidate=links.candidate(allowed);
         Diagnostics.links(this,links.summary(candidate!=null));
+        if(prefs.getBoolean("browser_mode",false)){
+            String author=Core.notificationAuthor(title,allowed);
+            if(author!=null&&BrowserMonitor.requestProfile(author))note(null,"X-Mitteilung priorisiert Webprüfung für @"+author);
+            else note(null,"X-Webprüfung wartet; Browserdienst starten bzw. Absender prüfen");
+            return;
+        }
         if(candidate==null){
             note("no_link","Keine eindeutige Post-ID oder URL in X-Mitteilung; lokaler Entwurf ohne Quellenlink");
             if(local==null){
@@ -82,15 +87,11 @@ public final class XListener extends NotificationListenerService {
         prepare(store,draft.id,draft.text,false,url);
     }
     private void prepare(LocalStore store,String id,String text,boolean verified,String sourceUrl)throws Exception{
-        if(!store.canPrepare()){store.finish(id,"Vorschlagslimit erreicht",null);note(null,"Vorschlagslimit erreicht: 20 pro Tag und 60 Sekunden Mindestabstand");return;}
         Core.Idea idea=Core.idea(text,id);
         if(idea==null){store.finish(id,"Kein verwertbarer Themenbegriff oder vertraulicher Inhalt",null);note("no_topic","Kein verwertbarer Themenbegriff oder Text enthält Zugangsdaten");return;}
-        File folder=new File(getFilesDir(),"drafts");if(!folder.exists()&&!folder.mkdirs())throw new java.io.IOException();
-        Art.save(idea,new File(folder,id+".png"));
-        String metadata=new org.json.JSONObject(Core.draftMetadata(idea,id+".png",sourceUrl,verified)).toString(2);
-        try(java.io.Writer out=new java.io.OutputStreamWriter(new java.io.FileOutputStream(new File(folder,id+".json")),java.nio.charset.StandardCharsets.UTF_8)){out.write(metadata);}
+        if(!DraftWriter.save(this,store,id,idea,sourceUrl,verified,verified?"post_link_verified":"notification_unverified",null)){note(null,"Vorschlagslimit erreicht: 20 pro Tag und 60 Sekunden Mindestabstand");return;}
         String status=verified?"Entwurf bereit · Post-Link bestätigt · Pump.fun fehlt":"Lokaler Entwurf · X-Mitteilung nicht per Link verifiziert · keine Veröffentlichung";
-        store.finish(id,status,idea);note(verified?"draft_verified":"draft_notification",status+": "+idea.name);
+        note(verified?"draft_verified":"draft_notification",status+": "+idea.name);
     }
     private void note(String key,String message){Diagnostics.note(this,key,message);}
 }

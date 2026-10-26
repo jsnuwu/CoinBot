@@ -1,54 +1,96 @@
-# CoinBot Android 0.3.2 – Benachrichtigungsempfang und lokale Entwürfe
+# CoinBot Android 0.4.0 – X-Webanmeldung und verknüpfte Entwürfe
 
-Diese App ersetzt den öffentlichen X-Timeline-Poller durch Benachrichtigungen der eigenen X-App.
-Sie benötigt keinen Server und keinen API-Key. Verarbeitung und Entwürfe bleiben auf dem Handy.
-**Diese APK veröffentlicht noch keine Coins. Die Pump.fun-Kontoverbindung fehlt weiterhin.**
+Die App liest ausgewählte öffentliche X-Profile über eine lokal angemeldete X-Webansicht. Sie
+bereitet automatische Coin-Entwürfe mit Original-Link vor. Kein Server, kostenpflichtiger X-API-Key,
+Sprachmodell-Abonnement oder Wallet-Zugriff wird benötigt. **Keine Veröffentlichung auf Pump.fun.**
 
-## Installation und Einrichtung
+## Installation und Anmeldung
 
-1. Die bereitgestellte `CoinBot-Android.apk` installieren. Android fragt dabei nach Erlaubnis zur
-   Installation aus dieser Quelle. Die APK ist eine signierte Testversion, keine Play-Store-App.
-2. CoinBot öffnen → **Benachrichtigungszugriff öffnen** → Zugriff für CoinBot erlauben.
-   Bei seitlich installierten Apps kann Android zunächst **Eingeschränkte Einstellung** anzeigen.
-   Dann in **Android-Einstellungen → Apps → CoinBot → Menü → Eingeschränkte Einstellungen zulassen**
-   freigeben und die Zugriffsseite erneut öffnen. Bezeichnungen hängen von Android/Hersteller ab.
-3. Die gewünschten X-Nutzernamen einstellen (Vorgabe Trump und Musk), Beobachtung einschalten und speichern.
-4. In X den gewünschten Accounts folgen und die Post-Glocke auf alle Posts stellen. X muss selbst
-   Benachrichtigungen senden dürfen. Auf einen echten neuen Post warten.
+1. Die bereitgestellte Update-APK über die bisherige App installieren. Der lokale Download ist
+   mit demselben Schlüssel wie 0.3.2 signiert; Einstellungen und Entwürfe bleiben erhalten.
+2. Beobachtete Accounts kontrollieren bzw. speichern. Die vorhandene Namenseingabe wurde nicht geändert.
+3. **X öffnen / anmelden** wählen. Der laufende Leser pausiert während der Anmeldung. Zugangsdaten
+   ausschließlich direkt in der angezeigten X-Webseite eingeben. Ein direkter X-Nutzername-/Passwort-
+   Ablauf ist vorgesehen; externe Login-Seiten/Google-SSO werden in diesem Fenster nicht geöffnet.
+4. Sobald du bei X angemeldet bist, **Anmeldung abgeschlossen · Beobachtung starten** drücken und
+   die Android-Mitteilung für den Dienst erlauben. Der Knopf allein gilt noch nicht als bestätigte
+   Anmeldung: Erst der Leser prüft die angemeldete Profilansicht.
+5. Für den ersten Test die **automatische X-Leseansicht offen lassen**. Sie wechselt Profile selbst;
+   sie ist keine manuell bedienbare X-App. Auf einen neuen Originalpost nach Beobachtungsstart warten.
+6. **Entwürfe und Status öffnen** zeigt Ergebnisse. Ein neuer Web-Entwurf enthält Name, Ticker,
+   Themenbild, Beschreibung mit Post-Ausschnitt und den **Originalpost-Link öffnen/kopieren**-Button.
+   In der Diagnose müssen `Letzte Web-Lesung` und später `Entwuerfe mit Originalpost aus X-Web` steigen.
 
-Die Statusanzeige zeigt, ob X eine verwertbare Meldung geschickt hat, ob der Link fehlt, ob die Quelle
-abgewiesen wurde oder ein lokaler Entwurf vorliegt. Es gibt keine Eingabe für eigene Coin-Ideen.
-Die App liest nur Meldungen des Pakets `com.twitter.android`; andere Apps werden sofort ignoriert.
-Direkte Nachrichten im Android-Nachrichtenformat und Gruppen-Zusammenfassungen werden verworfen.
-Unverwertbare Benachrichtigungstexte werden nicht gespeichert und nicht an einen Server geschickt.
+**Noch nicht mit einem echten Konto oder physischen Android-Gerät geprüft.** Build und lokale
+Fixtures beweisen nicht, dass X die Anmeldung im Android-WebView auf deinem Handy erlaubt.
+Falls X die Webansicht ablehnt, einen Sicherheitscheck fordert oder keine Posts liefert, wird
+keine Anmeldung umgangen. Der Status erklärt fehlende Anmeldung, Lesefehler bzw. fehlende neue Posts.
+Der im Webfenster eingegebene Account wird nicht allein durch einen Knopfdruck als verbunden gemeldet.
 
-## Was tatsächlich geprüft wird
+## Was automatisch läuft
 
-- Wenn vorhanden: eindeutiger X-Post-Link oder strukturierte Post-ID in den von Android bereitgestellten
-  Textfeldern, Tags oder expliziten `tweet_id`/`status_id`-Feldern; kein Auslesen privater
-  X-Datenbanken, kein automatisches Öffnen des Telefons und keine Umgehung von Anmeldungen.
-- Post höchstens fünf Minuten alt (X-Snowflake-Zeitstempel), Absender aus der eingestellten Liste.
-- Einbettung über `publish.x.com/oembed` liefert dieselbe Post-ID und einen passenden Absender.
-  Der Einbettungsdienst kann ebenfalls begrenzen oder ausfallen; keine Zusage seiner Verfügbarkeit.
-- Vollständiger Text: keine automatische Vorbereitung aus einer erkennbar gekürzten Antwort.
-- Allgemeine Themen aus Nachrichten, Politik, Wirtschaft, Technik, Wissenschaft, Sport, Verkehr,
-  Wetter und Gesundheit. Zugangsdaten bleiben ausgeschlossen. PNG wird direkt auf dem Gerät gezeichnet.
-- SQLite verhindert doppelte Verarbeitung derselben Post-ID über App-Neustarts hinweg.
-- Maximal 20 vorbereitete Entwürfe pro Tag mit 60 Sekunden Abstand; Entwürfe älter als 30 Tage
-  werden lokal gelöscht. Eine Zugriffssperre von X löst 15 Minuten Wartezeit aus, keine Umgehung.
+Der sichtbare Android-Vordergrunddienst besucht nur die konfigurierten Profile und liest dort
+Post-Text, Status-Link und Datum aus dem öffentlichen Post-DOM. Es gibt keine privaten API-Abfragen,
+kein Lesen von DMs, keine Likes, Antworten oder Posts. Auch der Leser klickt keine X-Elemente.
+Erkennt die eigene X-App eine Benachrichtigung, kann der vorhandene Empfänger das passende Profil
+vorziehen. Dafür ist der alte Benachrichtigungszugriff optional; regelmäßige Web-Prüfungen brauchen ihn nicht.
 
-**Offener Gerätetest:** Es wurde hier kein physisches Android-Gerät und keine echte X-Benachrichtigung
-verwendet. Manche X-/Android-Versionen liefern keinen Link in den verfügbaren Feldern. Version 0.2
-kann dann aus einem vollständig gelieferten Mitteilungstext und einem zur Liste passenden Titel
-einen **unverifizierten lokalen Entwurf** erzeugen. Ein bloßer Anzeigename wie „Elon Musk“ gilt
-weiterhin nicht als verifizierter Absender und darf keine automatische Veröffentlichung erlauben. Android-Energiesparen, Netz, X-Zustellung und fehlende Link-Daten können
-den Ablauf verzögern oder ganz verhindern. Ein Sekunden-Autobot ist mit der APK noch nicht nachgewiesen.
-Ein automatisches Ranking aller gerade trendenden X-Posts ist ebenfalls nicht enthalten; es werden
-die persönlich gewählten Accounts beobachtet.
+Profile werden nacheinander besucht, frühestens nach 60 Sekunden erneut. Nach einem Zyklus gibt es
+15 Sekunden Abstand; Laden/Anmeldeprüfung kann zusätzliche Zeit benötigen. Bei acht Accounts kann
+ein Durchlauf entsprechend mehrere Minuten dauern. Nur neue Posts ab dem aktuellen Dienststart,
+höchstens fünf Minuten alt, kommen infrage. Link-Autor muss genau zum ausgewählten Profil passen;
+HTML-Datum und Snowflake-Datum müssen plausibel zusammenpassen. Sichtbar gekürzte Texte sowie
+erkennbare Reposts, Quotes und Anzeigen bleiben ausgeschlossen. Die DOM-Erkennung ersetzt nicht
+sämtliche Informationen einer offiziellen API; unbekannte Layouts können keine Ergebnisse liefern.
 
-Die spätere Pump.fun-Anbindung soll den kostenlosen Website-Ablauf nutzen. Dafür muss erst das
-Besitzerkonto verbunden und der echte Ablauf geprüft werden. Diese APK enthält keinen Wallet-Signer,
-keinen privaten Schlüssel und keine Pump-Zugangsdaten. Sie sendet keine Solana-Transaktionen.
+Die Entwürfe nutzen vorhandene Themenvorlagen plus lesbare Namen ohne den bisherigen fünfstelligen
+Hex-Namensanhang, z. B. `Starship Sprint`. Ticker behalten einen kurzen deterministischen Suffix;
+das ist keine Garantie global eindeutiger Ticker. Die Beschreibung enthält einen kurzen tatsächlichen
+Post-Ausschnitt mit Quellenhandle und klarer Kennzeichnung als unabhängiges Community-Konzept.
+Das PNG zeigt Themenmotiv, Name und Ticker. Es gibt weder generative KI-Bilder noch eine Vorhersage
+von Viralität oder Gewinn. Allgemeine Themen bleiben zulässig; Zugangsdaten werden verworfen.
+
+SQLite und Post-ID verhindern doppelte fertige Entwürfe. 20 Entwürfe pro 24 Stunden und 60 Sekunden
+Abstand gelten für beide Leser zusammen. Neue Dateien: `files/drafts/POST_ID.png` und `.json` mit
+`twitter`, `source_post`, `source_text`, `source_author`, `source_created_at`, `source=x_browser_linked`
+und weiterhin `publishable=false`. Das Bildfeld ist ein lokaler Dateiname, noch keine IPFS-Adresse.
+Alte `notification_unverified`-Entwürfe werden weder rückwirkend verifiziert noch gelöscht.
+Nach Aktivierung des Webmodus erzeugt der Benachrichtigungsleser keine weiteren Entwürfe ohne Link.
+
+## Sitzung, Pause und Android-Grenzen
+
+Die Sitzung verwendet ausschließlich den normalen lokalen WebView-Cookie-Speicher. Native App-Logik
+liest weder Cookies noch Passwörter/Tokens, sendet sie nicht an einen eigenen Server und injiziert
+keinen JavaScript-Code ins Anmeldefenster. Der Post-Leser exportiert ausschließlich öffentliche
+Post-Felder, niemals Eingabewerte, Storage oder Cookies. Es gibt keine native JavaScript-Bridge.
+Datei-/Content-Zugriff, gemischte HTTP-Inhalte und fremde Top-Level-Login-Seiten sind gesperrt;
+TLS-Fehler werden nicht übergangen. X-Ressourcen und X selbst sehen die normale Web-Sitzung.
+
+**Web-Beobachtung pausieren** bzw. **Pausieren** in der Android-Mitteilung beendet den Dienst.
+**Mit gespeicherter Anmeldung starten** startet eine neue Beobachtungsphase. **X-Anmeldung lokal
+löschen** entfernt CoinBots Web-Cookies und Web-Storage; die eigenständige X-App bleibt getrennt.
+Es gibt keinen heimlichen Neustart bei Boot oder nach Beendigung durch Android.
+
+Der Dienst verwendet den passenden Typ `dataSync` und respektiert dessen Timeout. Android 15+
+begrenzt diese Art von Hintergrunddienst insbesondere auf insgesamt sechs Stunden innerhalb von
+24 Stunden; App-Nutzung, Geräteversion und Systemregeln beeinflussen die Laufzeit. Außerdem können
+Bildschirm-Aus, Energiesparen, Prozessbeendigung und WebView-Drosselung den Leser verzögern oder
+stoppen. Eine sichtbare Leseansicht ist für den ersten Test vorgesehen. **24/7- oder Sekundenbetrieb
+ist damit nicht nachgewiesen.** Abgelaufene Sitzung/Sicherheitscheck braucht eine manuelle Anmeldung;
+HTTP 403/429 löst 15 Minuten Pause aus. Kein bezahlter API-Fallback und keine Zugriffsumgehung.
+
+## Verifikation von 0.4.0
+
+137 Python-Tests, 126 Core-Prüfungen, 15 Benachrichtigungs-Metadatenprüfungen, 26 Browser-Regelprüfungen
+und 18 DOM-Fixture-Prüfungen bestehen; außerdem Ruff, Offline-Demo, SDK-Kompilierung, APK-Signatur und
+Signierer-Vergleich zur bisherigen lokalen APK. Browser-Regeln prüfen Autor-/Link-/Datumszuordnung,
+Frische, Startgrenze, Trunkierung und rein lokale Metadaten. Der DOM-Test prüft tatsächlich das
+mitgelieferte Extraktionsskript an synthetischen HTML-Seiten inklusive Login-Gate, Quotes und Reposts.
+
+Diese Tests ersetzen **keinen** echten X-Login, Android-Dienst-/WebView-Test, nachgewiesenen
+Hintergrundbetrieb oder eine Pump.fun-Veröffentlichung. Ein echter Anmelde-/Lesetest ist der nächste
+Schritt auf dem Handy. Diagnose enthält nur Zustände/Zähler/Handles, keine Zugangsdaten oder
+rohe Post-Texte; der gewollte Post-Bezug liegt in den lokalen Entwurfsdateien.
 
 ## Bauen und testen
 

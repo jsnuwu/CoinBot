@@ -1,0 +1,33 @@
+'use strict';
+const {readFileSync} = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const {parseHTML} = require('linkedom');
+const script = readFileSync(require('node:path').join(__dirname, '../../app/assets/x-profile.js'), 'utf8');
+const url = 'https://x.com/elonmusk';
+const post = (id, text, more='') => `<article data-testid="tweet"><a href="/elonmusk/status/${id}"><time datetime="2026-10-26T15:00:00Z"></time></a><div data-testid="tweetText">${text}</div>${more}</article>`;
+function read(html, signedIn=true) {
+  const {document} = parseHTML(`<html><body>${signedIn ? '<a href="/notifications" data-testid="AppTabBar_Notifications_Link"></a>' : ''}${html}</body></html>`);
+  return JSON.parse(vm.runInNewContext(script, {document, location:{href:url}, URL}));
+}
+let checks = 0;
+function check(test) {test(); checks++;}
+check(()=>assert.equal(read(post('123', 'Starship to Mars')).posts[0].url, url+'/status/123'));
+check(()=>assert.equal(read(post('123', 'Starship to Mars')).posts[0].text, 'Starship to Mars'));
+check(()=>assert.equal(read(post('123', 'Starship to Mars')).posts[0].createdAt, '2026-10-26T15:00:00Z'));
+check(()=>assert.equal(read(post('123', 'Starship')).posts[0].context, false));
+check(()=>assert.equal(read(post('123', 'Starship', '<div data-testid="socialContext">Reposted</div>')).posts[0].context, true));
+check(()=>assert.equal(read(post('123', 'Starship', '<div data-testid="quoteTweet"><a href="/other/status/456"><time></time></a></div>')).posts[0].context, true));
+check(()=>assert.equal(read(post('123', 'Starship', '<div role="link"><a href="/other/status/456">Quote</a></div>')).posts[0].context, true));
+check(()=>assert.equal(read(post('123', 'Starship', '<span data-testid="tweet-text-show-more-link">More</span>')).posts[0].truncated, true));
+check(()=>assert.equal(read(post('123', 'Starship'), false).posts.length, 0));
+check(()=>assert.equal(read('<input type="password" value="SECRET">'+post('123', 'Starship')).posts.length, 0));
+check(()=>assert.equal(JSON.stringify(read('<input name="password" value="SECRET">'+post('123', 'Starship'))).includes('SECRET'), false));
+check(()=>assert.equal(read('<article data-testid="tweet"><div data-testid="tweetText">No source time/link</div></article>').posts.length, 0));
+check(()=>assert.equal(read(post('123', 'x'.repeat(5000))).posts[0].text.length, 4001));
+check(()=>assert.equal(read(Array.from({length:25}, (_,i)=>post(i, 'Starship')).join('')).posts.length, 20));
+check(()=>assert.equal(read(post('123', 'rocket', '<span data-testid="promotedIndicator">Ad</span>')).posts[0].context, true));
+check(()=>assert.equal(read(post('123', 'rocket', '<span data-testid="replyingTo">Replying to</span>')).posts[0].context, true));
+check(()=>assert.equal(read(post('123', 'rocket', '<a href="/elonmusk/status/123/history">Edited</a>')).posts[0].context, true));
+check(()=>assert.equal(read(post('123', '&lt;script&gt;steal cookies&lt;/script&gt;')).posts[0].text, '<script>steal cookies</script>'));
+console.log(`${checks} X DOM fixture checks passed (no login/device test)`);

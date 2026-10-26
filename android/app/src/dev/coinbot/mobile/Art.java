@@ -74,7 +74,8 @@ final class Art {
             String subject=idea.name.split(" ")[0];p.setTextAlign(Paint.Align.CENTER);p.setColor(cream);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(34);
             while(p.measureText(subject)>610)p.setTextSize(p.getTextSize()-2);c.drawText(subject,384,550,p);
         }
-        p.setColor(Color.WHITE);p.setTextAlign(Paint.Align.CENTER);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(54);
+        p.setColor(Color.WHITE);p.setTextAlign(Paint.Align.CENTER);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(32);
+        while(p.measureText(idea.name)>690)p.setTextSize(p.getTextSize()-2);c.drawText(idea.name,384,65,p);p.setTextSize(54);
         while(p.measureText(idea.ticker)>650)p.setTextSize(p.getTextSize()-2);
         c.drawText(idea.ticker,384,620,p);p.setTypeface(Typeface.DEFAULT);p.setTextSize(22);p.setColor(Color.LTGRAY);c.drawText("UNOFFICIAL COMMUNITY MEME",384,690,p);
         try(FileOutputStream out = new FileOutputStream(target)){image.compress(Bitmap.CompressFormat.PNG,100,out);}finally{image.recycle();}

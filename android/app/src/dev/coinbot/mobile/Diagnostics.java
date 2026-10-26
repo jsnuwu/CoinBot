@@ -15,9 +15,10 @@ final class Diagnostics {
     static String text(Context context,boolean access){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         long when=p.getLong("last_event_time",0);
-        return "CoinBot 0.3.2\nZugriff: "+(access?"erteilt":"fehlt")+
-            "\nDienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
-            "\nBeobachtung: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
+        return "CoinBot 0.4.0\n"+summary(context)+
+            "\nBenachrichtigungszugriff (optional): "+(access?"erteilt":"fehlt")+
+            "\nMitteilungsdienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
+            "\nMitteilungsausloeser: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
             "\nAccounts: "+p.getString("accounts","realDonaldTrump,elonmusk")+
             "\nX-Meldungen: "+p.getLong("diag_received",0)+
             "\nSammelmeldungen ignoriert: "+p.getLong("diag_summary",0)+
@@ -34,6 +35,15 @@ final class Diagnostics {
             "\nLetzter Status: "+p.getString("last_event","Noch keine X-Meldung")+
             (when>0?"\nZeit: "+DateFormat.getDateTimeInstance().format(new Date(when)):"")+
             "\nPump.fun: nicht verbunden; keine Veroeffentlichungen";
+    }
+    static String summary(Context context){
+        SharedPreferences p=context.getSharedPreferences("settings",0);
+        return "X-Webdienst: "+(BrowserMonitor.running()?"aktiv":"pausiert / beendet")+
+            "\nX-Webstatus: "+p.getString("browser_state","Noch nicht angemeldet / gestartet")+
+            "\nBeobachtungsstart: "+(p.getLong("browser_started_at",0)>0?DateFormat.getDateTimeInstance().format(new Date(p.getLong("browser_started_at",0))):"noch nicht gestartet")+
+            "\nLetztes lesbares Profil: "+p.getString("browser_last_account","keines")+
+            "\nLetzte Web-Lesung: "+(p.getLong("browser_last_read",0)>0?DateFormat.getDateTimeInstance().format(new Date(p.getLong("browser_last_read",0))):"keine")+
+            "\nEntwuerfe mit Originalpost aus X-Web: "+p.getLong("diag_draft_browser",0);
     }
     static void links(Context context,String summary){context.getSharedPreferences("settings",0).edit().putString("last_link_scan",summary).apply();}
 }

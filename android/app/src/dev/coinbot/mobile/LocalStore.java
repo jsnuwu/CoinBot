@@ -23,6 +23,13 @@ final class LocalStore extends SQLiteOpenHelper {
         values.put("topic_version",3);
         return getWritableDatabase().insertWithOnConflict("posts", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1 || retryOldTopic(candidate.id);
     }
+    boolean claimBrowser(BrowserRules.Post post){
+        ContentValues v=new ContentValues();v.put("id",post.id);v.put("url",post.url);v.put("time",System.currentTimeMillis());
+        v.put("status","Originalpost aus X-Webansicht wird verarbeitet");v.put("source","x_browser_linked");v.put("topic_version",3);
+        if(getWritableDatabase().insertWithOnConflict("posts",null,v,SQLiteDatabase.CONFLICT_IGNORE)!=-1)return true;
+        // A previous embed failure must not suppress a later post actually observed in the browser.
+        return getWritableDatabase().update("posts",v,"id=? AND name IS NULL AND source IN ('post_link_pending','post_link_verified','x_browser_linked')",new String[]{post.id})==1;
+    }
     boolean claimNotification(Core.NotificationDraft draft,String sourceUrl){
         String url=Core.postUrl(sourceUrl);
         ContentValues v=new ContentValues();v.put("id",draft.id);v.put("url",url.isEmpty()?"@"+draft.author+" · ohne Post-ID/Link":url);

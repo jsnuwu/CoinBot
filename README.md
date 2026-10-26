@@ -16,31 +16,39 @@ Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
 ## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
 
-Unter [`android/`](android/README.md) liegt die Android-App 0.3.2 (Android 8+). Sie verarbeitet
-Benachrichtigungen der eigenen X-App und bereitet passende Entwürfe direkt auf dem Handy vor.
-Der erste Benutzerbericht bestätigte empfangene X-Meldungen, aber keinen verwertbaren Post-Link.
-Version 0.2 kann deshalb vollständige Mitteilungstexte mit zugeordnetem Titel auch ohne Link
-als **unverifizierte lokale Entwürfe** verarbeiten. Diese dürfen nicht automatisch veröffentlicht
-werden. Ein bestätigter Post-Link erhält einen getrennten Herkunftsstatus.
+Unter [`android/`](android/README.md) liegt die Android-App **0.4.0** (Android 8+). Sie bietet jetzt
+zusätzlich eine lokale X-Webanmeldung: Der Nutzer meldet sich direkt auf der X-Seite im WebView an.
+Ein sichtbarer, pausierbarer Android-Dienst besucht die ausgewählten Profile und liest neue Posts
+mit Text, Autor, Datum und Original-Link. Dafür wird kein kostenpflichtiger X-API-Key verwendet.
+Anmeldedaten und Web-Sitzung verbleiben im Android-WebView; keine Cookie-/Token-Extraktion,
+keine native JavaScript-Bridge und keine Übertragung an Render. Die App tätigt keine X-Aktionen.
 
-Bekannte Post-IDs werden ohne X-API-Aufruf in Originalpost-URLs umgewandelt. Der Posttext muss
-seinen eigenen Link nicht enthalten. Version 0.3.1 schreibt den Quellenlink in `twitter` und
-`source_post` der Metadaten und zeigt ihn am Entwurf. Fehlen ID und URL in den Mitteilungsdaten,
-bleiben diese Felder aus; Text und Anzeigename allein erlauben keine zuverlässige Link-Zuordnung.
+Nach Anmeldung: **„Anmeldung abgeschlossen · Beobachtung starten“** drücken, Android-Mitteilung
+für den Dienst erlauben und zum ersten Test die automatische Leseansicht offen lassen. Neue
+Entwürfe erhalten einen lesbaren Namen, einen deterministischen Ticker, eine Beschreibung mit
+Post-Bezug, ein lokal gezeichnetes Themenbild und den Quellenlink in `twitter` / `source_post`.
+Die Begriffs-/Bildableitung bleibt regelbasiert, kein Sprachmodell und keine Viralitätsprognose.
+Die App enthält keine manuelle Coin-Erstellung, keinen Wallet-Signer und keine Pump-Veröffentlichung.
 
-Version 0.3.2 liest zusätzlich verschachtelte Android-Metadaten und X-App-Postlinks. Die Diagnose
-meldet die erkannten Feldtypen und ein vorhandenes, aber nicht auslesbares X-Öffnungsziel ohne Rohdaten.
-Sie garantiert keine Links: X kann den Post ausschließlich in einem undurchsichtigen `PendingIntent`
-referenzieren. Es gibt keinen automatischen Ersatz durch geratenen Textabgleich oder Profil-Links.
+**Experimentell, noch kein echter Konto-/Gerätetest der Web-Anbindung:** X kann WebView-Anmeldungen
+ablehnen, Bestätigungen verlangen oder die Webseite ändern. Android kann eine nicht sichtbare
+Webansicht drosseln bzw. den Dienst beenden. Der Dienst respektiert die `dataSync`-Zeitlimits
+(neuere Android-Versionen begrenzen insbesondere Hintergrundlaufzeit); keine 24/7-/Sekundenzusage.
+Neue Posts kommen nur ab dem aktuellen Start und innerhalb von fünf Minuten in Betracht.
+Profile werden nacheinander besucht (mindestens 60 Sekunden je Profil); erfolgreiche Zyklen haben
+15 Sekunden Abstand. Mitteilungen können ein Profil vorziehen. Es gelten weiterhin 20 Entwürfe
+je 24 Stunden und 60 Sekunden Mindestabstand. Bei HTTP 403/429 pausiert der Webleser 15 Minuten.
 
-APK-Build, Signaturprüfung, 126 Core- und 15 Metadatenprüfungen mit JVM-Testobjekten bestehen.
-Version 0.3.2 wurde noch nicht auf dem Handy getestet; der vollständige Ablauf muss dort geprüft werden.
-Die App zeigt Empfangszähler, Dienstverbindung und Filtergründe; `Diagnose kopieren` enthält keine
-Nachrichtentexte oder Sitzungsschlüssel. Einstellungen und vorhandene Entwürfe bleiben bei der
-lokalen, mit demselben Schlüssel signierten Update-APK erhalten. Keine manuelle Coin-Erstellung,
-keine Wallet-Schlüssel und weiterhin keine Pump-Veröffentlichung in der App.
-Details stehen in der [Android-Anleitung](android/README.md). GitHub Actions baut zusätzlich eine
-separat signierte Test-APK als Artefakt; diese kann eine andere Signatur als der lokale Download haben.
+Die ursprüngliche Benachrichtigungsdiagnose bleibt erhalten. Nach Aktivierung des Webmodus erzeugt
+sie keine neuen unverifizierten Textentwürfe; Mitteilungen dienen dann nur noch als Leseauslöser.
+Vorhandene Entwürfe und Einstellungen bleiben erhalten. Der neue Herkunftsstatus `x_browser_linked`
+unterscheidet beobachtete Web-Posts von alten `notification_unverified`-Entwürfen. Die zuletzt
+gelesene Profilansicht, Lesungszeit und Anzahl verknüpfter Entwürfe stehen getrennt in der Diagnose.
+
+Verifiziert: **137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-Regel- und 18 DOM-Fixture-Prüfungen**,
+Ruff, Offline-Demo, APK-Build und Signaturprüfung. Fixtures sind kein Beweis erfolgreicher Anmeldung
+oder tatsächlicher X-Zustellung. Die lokal bereitgestellte Update-APK verwendet denselben Signierer
+wie 0.3.2. CI-APKs können einen anderen Test-Schlüssel verwenden. Details: [Android-Anleitung](android/README.md).
 
 ## Kostenlos ausprobieren
 

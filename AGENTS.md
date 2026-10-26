@@ -5,8 +5,13 @@
 - Keine manuelle Coin-/Vorschlagserstellung in der Website oder über deren API anbieten.
 - Themenauswahl ist nicht auf klassische Memes begrenzt: allgemeine Nachrichten-/Post-Themen lokal
   ableiten, ohne daraus Viralitäts- oder Gewinnwahrscheinlichkeiten zu behaupten.
-- Android-Empfangstest unter `android/`: ausschließlich eigene X-Benachrichtigungen, lokale Verarbeitung,
-  keine versteckten Konto-/Wallet-Zugriffe. APK-Build und JVM-Tests ersetzen keinen echten Gerätetest.
+- Android-App unter `android/`: eigene X-Benachrichtigungen und ausdrücklich angeforderte X-Webanmeldung
+  im lokalen WebView. Zugangsdaten nur direkt bei X eingeben; keine Cookie-/Token-/Passwort-Extraktion,
+  kein nativer JavaScript-Bridge-Zugriff und keine Übertragung an einen eigenen Server. Der Webleser
+  liest nur ausgewählte öffentliche Profilposts; keine DMs, Likes, Antworten oder Veröffentlichungen.
+  APK-Build, DOM-Fixtures und JVM-Tests ersetzen keinen echten Anmelde-/Gerätetest.
+- Der Webleser muss als sichtbarer pausierbarer Android-Dienst laufen. Hintergrund-/WebView- und
+  dataSync-Zeitlimits respektieren; keine 24/7-/Sekundenzusage oder Umgehung von X-Anmeldeprüfungen.
 - Benachrichtigungsentwürfe ohne bestätigten Link haben `notification_unverified` / `publishable=false`.
   Niemals allein aus Anzeigename und Mitteilungstext automatisch veröffentlichen.
 - Aktuelle Kostenanforderung: kostenlos bleiben. Render-Blueprint nur Webservice `plan: free`, keine
