@@ -1,0 +1,54 @@
+package dev.coinbot.mobile;
+
+import android.content.*;
+import android.database.Cursor;
+import android.database.sqlite.*;
+import java.util.*;
+
+final class LocalStore extends SQLiteOpenHelper {
+    private final Context context;
+    LocalStore(Context context) { super(context, "coinbot.db", null, 1); this.context=context.getApplicationContext(); }
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE posts (id TEXT PRIMARY KEY,url TEXT,time INTEGER,status TEXT,name TEXT,ticker TEXT,theme TEXT,description TEXT)");
+        db.execSQL("CREATE INDEX posts_time ON posts(time)");
+    }
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+    boolean claim(Core.Candidate candidate) {
+        ContentValues values = new ContentValues(); values.put("id", candidate.id); values.put("url", candidate.url);
+        values.put("time", System.currentTimeMillis()); values.put("status", "Quelle wird geprüft");
+        return getWritableDatabase().insertWithOnConflict("posts", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1;
+    }
+    void finish(String id, String status, Core.Idea idea) {
+        ContentValues values = new ContentValues(); values.put("status", status);
+        if (idea != null) { values.put("name", idea.name); values.put("ticker", idea.ticker); values.put("theme", idea.theme); values.put("description", idea.description); }
+        getWritableDatabase().update("posts", values, "id=?", new String[]{id});
+    }
+    boolean canPrepare(){
+        long now=System.currentTimeMillis();
+        try(Cursor c=getReadableDatabase().rawQuery("SELECT COUNT(*),MAX(time) FROM posts WHERE name IS NOT NULL AND time>=?",new String[]{Long.toString(now-86_400_000)})){
+            c.moveToFirst();return c.getInt(0)<20&&(c.isNull(1)||now-c.getLong(1)>=60_000);
+        }
+    }
+    void prune(){
+        long cutoff=System.currentTimeMillis()-30L*86_400_000;
+        try(Cursor c=getReadableDatabase().rawQuery("SELECT id FROM posts WHERE time<?",new String[]{Long.toString(cutoff)})){
+            while(c.moveToNext())new java.io.File(context.getFilesDir(),"drafts/"+c.getString(0)+".png").delete();
+        }
+        getWritableDatabase().delete("posts","time<?",new String[]{Long.toString(cutoff)});
+    }
+    List<Map<String,String>> recent() {
+        List<Map<String,String>> result = new ArrayList<>();
+        try (Cursor c = getReadableDatabase().rawQuery("SELECT * FROM posts ORDER BY time DESC LIMIT 30", null)) {
+            while (c.moveToNext()) {
+                Map<String,String> row = new HashMap<>();
+                for (String column : c.getColumnNames()) row.put(column, c.getString(c.getColumnIndexOrThrow(column)));
+                result.add(row);
+            }
+        }
+        return result;
+    }
+    void recordEvent(Context context, String message) {
+        context.getSharedPreferences("settings", 0).edit().putString("last_event", message)
+            .putLong("last_event_time", System.currentTimeMillis()).apply();
+    }
+}

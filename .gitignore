@@ -12,3 +12,7 @@ secrets/
 *.key
 build/
 dist/
+*.apk
+*.jks
+*.keystore
+*.dex

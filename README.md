@@ -14,6 +14,21 @@ Token-Erstellung ist kein Geschäftsmodell mit garantierten Einnahmen. Ein Launc
 noch Handelsvolumen. Dieses Projekt enthält keine künstlichen Käufe, Eigenkäufe, Volumenmanipulation,
 Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
+## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
+
+Unter [`android/`](android/README.md) liegt eine erste installierbare Android-App (Android 8+).
+Sie verarbeitet ausschließlich Benachrichtigungen der eigenen X-App, sucht einen eindeutigen Post-Link,
+prüft Absender/Alter über die öffentliche Einbettung und erstellt Name, Ticker, Beschreibung und PNG
+lokal auf dem Handy. Dadurch ist für diese Verarbeitung kein Render-Server nötig. Keine manuelle
+Coin-Erstellung, keine Wallet-Schlüssel, keine Pump-Anmeldung und noch keine Veröffentlichung.
+
+APK-Build, Signaturprüfung und 27 reine Java-Prüfungen sind lokal erfolgreich. Es wurde **noch keine
+echte X-Benachrichtigung auf einem physischen Android-Gerät getestet**. Liefert X keinen Link oder
+keinen vollständigen Post-Text, wird angehalten. Die Pump-Kontoverbindung folgt erst mit der vom
+Nutzer später anzulegenden Phantom-Wallet. Die App allein ist noch kein nachgewiesener Auto-Launcher.
+Details zur Installation, zu Androids Benachrichtigungsberechtigung und zu den Grenzen stehen in der
+[Android-Anleitung](android/README.md). GitHub Actions stellt die APK als Build-Artefakt bereit.
+
 ## Kostenlos ausprobieren
 
 Python 3.12+, Linux/macOS:

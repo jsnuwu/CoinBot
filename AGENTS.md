@@ -3,6 +3,8 @@
 - Dieses Repository ist unabhängig von TradeBot. Keine Wallets, Secrets, Datenbanken oder Deploys teilen.
 - Nutzerziel: vollautomatische Launches nach festen Regeln, keine Telegram-Freigabe pro Coin.
 - Keine manuelle Coin-/Vorschlagserstellung in der Website oder über deren API anbieten.
+- Android-Empfangstest unter `android/`: ausschließlich eigene X-Benachrichtigungen, lokale Verarbeitung,
+  keine versteckten Konto-/Wallet-Zugriffe. APK-Build und JVM-Tests ersetzen keinen echten Gerätetest.
 - Aktuelle Kostenanforderung: kostenlos bleiben. Render-Blueprint nur Webservice `plan: free`, keine
   kostenpflichtige Disk/Datenbank/Worker. X als Quelle beibehalten; keine RSS-Umstellung.
 - Der Gratisbetrieb ist ausdrücklich Preview: öffentliche X-Einbettung nur experimentell, keine
