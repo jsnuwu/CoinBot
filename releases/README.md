@@ -1,5 +1,17 @@
 # CoinBot Android test builds
 
+[CoinBot 0.7.0 herunterladen](https://github.com/jsnuwu/CoinBot/raw/refs/heads/main/releases/CoinBot-Android-0.7.0.apk)
+
+Version 0.7.0 / Code 12: lokaler Szenengenerator mit Figuren, Posen, Bühnen und Requisiten.
+Dauerhafte Bildhistorie prüft gleiche Pixel, gleiche Komposition und ähnliche Bildstruktur;
+nach 24 ungeeigneten Kandidaten wird kein neues Bild gespeichert. Keine Bild-API oder Abo.
+Alte Bilder können mit Sicherung umgestaltet werden. Keine unbegrenzte oder weltweite Ähnlichkeitsgarantie.
+APK rund 14 MB; SHA-256 `ca379e4974ea2a1118b512ac4f459ca23e188c84a2a88a730137ecfe381bbe87`.
+Signierer identisch mit der bereitgestellten 0.6.0. 137 Python-Tests, Auswahl-/DOM-/Datei-/Historien-
+und Generator-Referenzprüfungen, Ruff, Offline-Demo und APK-Build bestanden. 20 Bilder desselben Themas
+im Referenztest nacheinander erzeugt und geprüft. Referenzrenderer ist Java2D, keine echte Android-
+Grafik-/Handyprüfung. Vorhandene App nicht deinstallieren; ihre Daten enthalten auch die Bildhistorie.
+
 [CoinBot 0.6.0 herunterladen](https://github.com/jsnuwu/CoinBot/raw/refs/heads/main/releases/CoinBot-Android-0.6.0.apk)
 
 Version 0.6.0 / Code 11 enthält 20 gebündelte surreale Meme-Szenen und korrigiert

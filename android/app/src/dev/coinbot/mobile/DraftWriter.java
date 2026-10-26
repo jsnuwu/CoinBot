@@ -19,17 +19,18 @@ final class DraftWriter {
                 // Save source evidence first, so a failed image write can be repaired without source loss.
                 json.put("image_status","pending");
                 DraftAssets.write(DraftAssets.file(context,id,".json"),json);
-                Art.save(context,idea,DraftAssets.file(context,id,".png"),post==null?sourceText:post.text);
-                DraftAssets.imageMetadata(json,id,idea);
+                GeneratedArt generated=Art.save(context,idea,DraftAssets.file(context,id,".png"),post==null?sourceText:post.text);
+                DraftAssets.imageMetadata(json,id,idea,generated);
                 DraftAssets.write(DraftAssets.file(context,id,".json"),json);
                 store.imageStatus(id,"ready");
                 String status=post!=null?"Entwurf mit Originalpost · aus X-Webansicht · keine Veröffentlichung":
                     verified?"Entwurf bereit · Post-Link bestätigt · Pump.fun fehlt":"Lokaler Entwurf · X-Mitteilung nicht per Link verifiziert · keine Veröffentlichung";
                 store.finish(id,status,idea);return true;
             }catch(Exception e){
-                store.imageStatus(id,"Fehler: Bild nicht fertig gespeichert; automatische Reparatur beim Öffnen");
+                String error=e instanceof ImageGenerationException?e.getMessage():"Bild nicht fertig gespeichert; automatische Reparatur beim Öffnen";
+                store.imageStatus(id,"Fehler: "+error);
                 store.finish(id,"Entwurf erhalten · Bildspeicherung fehlgeschlagen",null);
-                Diagnostics.note(context,"image_failed","Entwurf erhalten, aber Bildspeicherung fehlgeschlagen");
+                Diagnostics.note(context,"image_failed","Entwurf erhalten: "+error);
                 throw e;
             }
         }

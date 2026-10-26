@@ -1,4 +1,4 @@
-# CoinBot Android 0.6.0 – lokale Bilder und übersichtliche Entwürfe
+# CoinBot Android 0.7.0 – lokale Bilder und übersichtliche Entwürfe
 
 Version 0.4.1 korrigiert den Umfang von 0.4.0: **Keine regelmäßige Profilbeobachtung.** Eine eigene
 X-Handy-Mitteilung ist der einzige automatische Auslöser. Login und Link-Auflösung laufen lokal auf
@@ -372,3 +372,77 @@ Die APK verwendet denselben lokalen Signierer wie die bereitgestellte 0.5.2.
 Noch am Handy prüfen: Linkquote mit neuen Mitteilungen samt Abgleichdiagnose, Quote-/Emoji-Fälle,
 Meme-Vorschau/Großansicht, Umgestaltung alter Bilder mit Daten-/Quellenerhalt und Speicherausfälle.
 Keine Pump-Veröffentlichung, Wallet-Anbindung oder Änderung des zurückgestellten Komma-Parsers.
+
+
+## Änderungen in 0.7.0: lokaler Szenengenerator mit Bildhistorie
+
+Neue Entwürfe verwenden jetzt eine lokale Szenengrammatik statt nur eines Ausschnitts einer der
+20 fertigen Szenen. Sechs separat mitgelieferte Bühnen, 16 transparente Figuren in unterschiedlichen
+Posen/Gesichtsausdrücken, Haupt-/Nebenfigur, sechs Anordnungen sowie prozedural gezeichnete Requisiten
+und Umgebungen werden anhand von Thema, Text und Entwurfs-ID kombiniert. Fehlgeschlagene Kandidaten
+ändern diese wesentlichen Bausteine. Eine andere Farbe, Beleuchtung, ein Ausschnitt oder ein
+zufälliger Zusatz im Bild zählt für sich allein nicht als neue Komposition. Figurenrand-Fragmente
+benachbarter Atlaszellen werden vor dem Zeichnen entfernt.
+
+Die Figuren und Bühnen sind einmalig vorbereitete Bildbausteine. Zur Laufzeit arbeitet ausschließlich
+Android Canvas auf dem Handy: kein Bild-API-Aufruf, kein Abo, kein Modell-Download, kein lokal laufendes
+Sprach-/Diffusionsmodell. Das ist ein begrenzter Szenengenerator, keine beliebig freie KI-Kunst.
+Figuren und Bausteine können wiederkehren; die komplette Bildkomposition muss die Prüfung bestehen.
+
+### Duplikat- und Ähnlichkeitsprüfung
+
+Vor dem Speichern wird jeder Kandidat mit der bisherigen lokalen Bildhistorie verglichen:
+
+- SHA-256 über Bildgröße und tatsächliche ARGB-Pixel; PNG-Metadaten oder andere PNG-Kompression
+  machen identische Bildpixel nicht zu einem neuen Bild.
+- Struktureller Kompositionsschlüssel ohne Farbe/Beleuchtung/Zufallsnummer. Gleiche wesentliche
+  Bühne-/Figuren-/Pose-/Anordnungs-/Requisitenkombinationen werden verworfen.
+- 64-Bit-Kantenvergleich und kontrastnormalisierte 16×16-Helligkeitsstruktur. Kleine Farb-, Helligkeits-,
+  Pixel- oder Eckmarkierungsänderungen sollen nicht als neue Bilder durchgehen. Die Ähnlichkeits-
+  schwellen sind Heuristiken, kein Beweis, dass Menschen niemals zwei Bilder ähnlich finden.
+
+Nach höchstens 24 verworfenen Kandidaten gibt es einen sichtbaren Bildfehler und kein neues PNG,
+keinen Bild-Erfolgsstatus und keine neuen fertigen Bildmetadaten. Bei fehlgeschlagener Umgestaltung
+bleibt das bisherige PNG erhalten. Quellenlink, Text, Name und Verifizierungsstatus werden nicht
+verändert. Die Detailansicht unterscheidet alte Bilder ohne neuen Vergleich von erfolgreich
+abgeglichenen Bildern. Die Diagnose zeigt verworfene Kandidaten und den letzten konkreten Bildfehler.
+
+### Dauerhafte Historie und Wiederherstellung
+
+`image-history.v1` liegt getrennt von den Entwürfen im internen App-Speicher und wird bei deren
+30-Tage-Bereinigung nicht gelöscht. Beim ersten Einsatz werden vorhandene lesbare PNGs und frühere
+Bildsicherungen einmalig erfasst. Schon vorher gelöschte oder nicht mehr lesbare Altbilder lassen
+sich nicht nachträglich vergleichen. Bestehende alte Duplikate werden erfasst, nicht ungefragt gelöscht
+oder ersetzt. Für alte Bilder kann weiterhin die Umgestaltung in Einstellungen/Detailansicht genutzt werden.
+
+Prüfung und Reservierung laufen unter einer Dateisperre. Die Bildreservierung wird synchronisiert und
+atomar gespeichert, **bevor** ein PNG sichtbar wird. Nach einem Abbruch darf ein anderer Entwurf die
+Reservierung nicht übernehmen. Das Wiederherstellen desselben Entwurfs darf dessen eigenes früheres
+Bild wiederverwenden; eine ausdrücklich neue Komposition vergleicht auch mit eigenen früheren Bildern.
+Metadaten speichern den tatsächlich akzeptierten Versuch, Bausteine, Kompositionsschlüssel und Pixelhash.
+
+Datensätze und Abschlusszählung/-prüfsumme erkennen beschädigte oder abgeschnittene Historien.
+Eine Initialisierungsmarkierung erkennt den Verlust der Historiedatei. Fehler oder das Erreichen der
+16-MiB-Historiengrenze halten neue Bildfreigaben an; keine automatische leere Ersatzhistorie und kein
+Löschen alter Vergleichsdaten. Eine Deinstallation/App-Datenlöschung oder verlorener gesamter Speicher
+entfernt auch diese lokale Historie; damit ist kein Vergleich mit verlorenen früheren Bildern möglich.
+Es gibt keine geräteübergreifende oder weltweite Duplikatgarantie. Künftige Algorithmusänderungen müssen
+die Historie kompatibel migrieren, nicht zurücksetzen.
+
+### Verifikation und offene Geräteprüfung
+
+Die Zusatztests prüfen Farb-/Helligkeitsänderungen, einzelne Pixel/Eckmarkierungen, PNG-Neucodierung,
+Neustart, Historienverlust/-beschädigung, Reservierung vor fehlgeschlagener PNG-Veröffentlichung und
+zwei konkurrierende Prozesse. Produktionscode `Art`/`ScenePainter` läuft zusätzlich mit einem
+Java2D-Referenzadapter: 20 unterschiedliche Bilder desselben Themas nacheinander, Wiederherstellung, neue Umgestaltung, automatische
+Altdaten-Erfassung sowie erzwungene Ablehnung sämtlicher 24 Kandidaten ohne Überschreiben des alten Bilds.
+Dieser Adapter ist ausschließlich Testcode und wird nicht mit der APK ausgeliefert. Referenzbilder
+wurden visuell geprüft; sie sind **keine Android-Screenshots**.
+
+137 Python-Tests, bestehende Auswahl-/Zuordnungs-/DOM-/UI-/Dateiprüfungen, neue Historien-/Generator-
+prüfungen, Ruff, Offline-Demo, APK-Build und Signaturprüfung bestehen. Noch am echten Handy prüfen:
+Android-Canvas-Bilder und Laufzeit/Speicher auf dem konkreten Gerät, einmaliger Altbild-Import,
+Neustart und Speichermangel während der Speicherung sowie neue echte X-Mitteilung bis zur Vorschau.
+Die APK behält denselben lokalen Signierer wie 0.6.0. Einstellungen, X-Sitzung, Entwürfe und Schema 4
+bleiben erhalten. Empfang, Post-Link-Verifizierung, Komma-Parser, Wallet und Pump-Veröffentlichung
+wurden durch diese Änderung nicht erweitert oder aktiviert.

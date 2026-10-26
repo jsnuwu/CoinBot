@@ -22,7 +22,7 @@ fehlende Berechtigungen und Anmeldung; bloße Dienstbereitschaft wird nicht als 
 angezeigt. Entwürfe sind nach bestätigtem Post-Link filterbar und öffnen eine eigene Detailansicht.
 Technische Diagnose ist erst bei Bedarf sichtbar. Mehr dazu: [UI/UX-Konzept](docs/android-ui.md).
 
-Unter [`android/`](android/README.md) liegt die Android-App **0.6.0** (Android 8+). Ihr Auslöser ist
+Unter [`android/`](android/README.md) liegt die Android-App **0.7.0** (Android 8+). Ihr Auslöser ist
 **ausschließlich eine eigene X-Handy-Mitteilung**. Die Profil-Rundläufe aus 0.4.0 wurden nach der
 Nutzerkorrektur entfernt: Ohne Mitteilung keine automatische X-Seitenabfrage, auch nicht beim Start.
 Bereits sichtbare echte X-Mitteilungen innerhalb von fünf Minuten dürfen beim Verbinden eingereiht werden.
@@ -52,6 +52,14 @@ zu keinem neuen Seitenaufruf. Nach jedem Auftrag wird die X-Seite entladen. Quel
 weitere Aufträge für 15 Minuten; danach wird erst eine neue Mitteilung verarbeitet. Maximal 20 Entwürfe
 je 24 Stunden und 60 Sekunden Abstand bleiben erhalten. Alte `notification_unverified`-Entwürfe werden
 nicht nachträglich als bestätigt markiert. Konto, Datenbank und bestehende Entwürfe bleiben beim lokalen Update erhalten.
+
+Version 0.7.0 kombiniert lokal Bühnen, Figuren mit unterschiedlichen Posen/Ausdrücken, Requisiten
+und Anordnungen zu neuen Kompositionen. Ein dauerhafter Vergleich prüft identische Pixel, gleiche
+Kompositionen und ähnliche Bildstrukturen. Nach 24 ungeeigneten Kandidaten stoppt die Bilderstellung
+mit sichtbarem Fehler; Farben oder Zufallsnummern reichen nicht als Unterschied. Die Historie bleibt
+bei der Entwurfsbereinigung erhalten. Es ist kein frei generierendes KI-Modell und keine unbegrenzte
+oder geräteübergreifende Ähnlichkeitsgarantie. Details, Datenhaltung und Testgrenzen:
+[Android 0.7.0](android/README.md#änderungen-in-070-lokaler-szenengenerator-mit-bildhistorie).
 
 Version 0.6.0 ersetzt die Kategorie-Icons durch lokale Kompositionen aus 20 gebündelten surrealen
 Meme-Szenen. Es ist keine neue KI-Generierung pro Post; Szenen können sich wiederholen. Bestehende

@@ -57,7 +57,7 @@ public final class AssetTest {
             check(Arrays.equals(oldPng,Files.readAllBytes(DraftAssets.file(context,"123",".before-v3.png").toPath())),"restyle backs up original image");
             check(Arrays.equals(oldJson,Files.readAllBytes(DraftAssets.file(context,"123",".before-v3.json").toPath())),"restyle backs up original metadata");
             JSONObject restyled=DraftAssets.read(json);
-            check(restyled.getString("image_generator").equals(MemeScene.GENERATOR),"new compositor provenance");
+            check(restyled.getString("image_generator").equals(StoryPlan.GENERATOR),"new compositor provenance");
             check(restyled.getString("source_text").equals("preserve confirmed original")&&restyled.getBoolean("source_verified")&&restyled.getString("custom").equals("keep"),"restyle leaves source evidence and custom data intact");
             DraftAssets.repair(context,store,row,true);
             check(Arrays.equals(oldJson,Files.readAllBytes(DraftAssets.file(context,"123",".before-v3.json").toPath())),"repeated restyle never overwrites original backup");
@@ -65,6 +65,11 @@ public final class AssetTest {
             byte[] preservedImage=Files.readAllBytes(image.toPath());DraftAssets.repair(context,store,row,true);
             check(Arrays.equals(preservedImage,Files.readAllBytes(image.toPath())),"restyle refuses to overwrite valid image with broken metadata");
             check(new String(Files.readAllBytes(json.toPath()),"UTF-8").equals("{broken original evidence"),"restyle does not erase malformed source evidence");
+            Map<String,String> blocked=new HashMap<>();blocked.put("id","blocked");store.data.put("blocked",blocked);Art.exhausted=true;
+            try{DraftWriter.save(context,store,"blocked",idea,"",false,"notification_unverified",null,"Starship");throw new AssertionError("duplicate pool was accepted");}catch(ImageGenerationException expected){}
+            check(blocked.get("image_status").contains("24")&&!"ready".equals(blocked.get("image_status")),"duplicate exhaustion remains visible instead of successful image status");
+            check(!DraftAssets.file(context,"blocked",".png").exists()&&DraftAssets.read(DraftAssets.file(context,"blocked",".json")).optString("image_status").equals("pending"),"failed image has no PNG or ready metadata");
+            Art.exhausted=false;
             Set<String> styles=new HashSet<>();for(int i=0;i<30;i++){ArtStyle style=new ArtStyle(Core.idea("Rocket to Mars",String.valueOf(i)));styles.add(style.hue+":"+style.layout+":"+style.decoration);}
             check(styles.size()>20,"per-draft visual variation");
             for(String[] example:new String[][]{{"transport","New airport flight","aircraft"},{"finance","Bitcoin markets","crypto"},{"weather","Snow in Florida","snow"},{"weather","Heat and sunshine","sun"},{"politics","Iran elections","ballot"},{"transport","Railway to Seoul","transport"}}){

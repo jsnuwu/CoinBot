@@ -49,9 +49,8 @@ final class DraftAssets {
         byte[] json=metadata.toString(2).getBytes(StandardCharsets.UTF_8);
         DraftFiles.replace(file,temp->{try(FileOutputStream out=new FileOutputStream(temp)){out.write(json);out.getFD().sync();}read(temp);});
     }
-    static void imageMetadata(JSONObject metadata,String id,Core.Idea idea)throws Exception{
-        metadata.put("image",id+".png");metadata.put("image_status","ready");metadata.put("image_generator",MemeScene.GENERATOR);
-        MemeScene scene=new MemeScene(idea,metadata.optString("source_text",metadata.optString("notification_text")));metadata.put("image_scene",scene.name);metadata.put("image_source_asset",scene.asset);
+    static void imageMetadata(JSONObject metadata,String id,Core.Idea idea,GeneratedArt generated)throws Exception{
+        metadata.put("image",id+".png");metadata.put("image_status","ready");for(Map.Entry<String,Object> field:generated.metadata().entrySet())metadata.put(field.getKey(),field.getValue());
         metadata.put("image_theme",idea.theme);metadata.put("image_motif",new ArtStyle(idea,metadata.optString("source_text",metadata.optString("notification_text"))).motif);metadata.put("image_width",768);metadata.put("image_height",768);
     }
     static void repair(Context context,LocalStore store,Map<String,String> row){repair(context,store,row,false);}
@@ -71,15 +70,16 @@ final class DraftAssets {
                 }
             }catch(Exception e){metadataError=e;}
             boolean redraw=!valid||restyle&&metadataError==null;
+            GeneratedArt generated=null;
             if(redraw){
                 if(valid){backup(image,file(context,id,".before-v3.png"));backup(json,file(context,id,".before-v3.json"));}
                 String text=metadata==null?"":metadata.optString("source_text",metadata.optString("notification_text"));
-                Art.save(context,idea,image,text);changed=true;
+                generated=Art.save(context,idea,image,text,restyle);changed=true;
             }
             if(metadataError!=null)throw metadataError;
             if(redraw||!metadata.optString("image").equals(id+".png")||!metadata.optString("image_status").equals("ready")){
                 // Preserve provenance of an existing valid legacy image; do not claim it was redrawn.
-                if(redraw)imageMetadata(metadata,id,idea);
+                if(redraw)imageMetadata(metadata,id,idea,generated);
                 else {metadata.put("image",id+".png");metadata.put("image_status","ready");}
                 changed=true;
             }
@@ -90,7 +90,7 @@ final class DraftAssets {
                 store.finish(id,"Entwurf lokal gespeichert · Bild geprüft · keine Veröffentlichung",null);
             if(changed)Diagnostics.note(context,"image_repaired",restyle?"Meme-Szene lokal erstellt; vorheriges Bild gesichert":"Entwurfsbild lokal ergänzt / Bildmetadaten repariert");
         }catch(Exception e){
-            String status="Fehler: Bild oder Bildmetadaten nicht lesbar; Entwurf erhalten";
+            String status="Fehler: "+(e instanceof ImageGenerationException?e.getMessage():"Bild oder Bildmetadaten nicht lesbar; Entwurf erhalten");
             if(!status.equals(row.get("image_status"))){store.imageStatus(id,status);Diagnostics.note(context,"image_failed",status);}
         }
     }

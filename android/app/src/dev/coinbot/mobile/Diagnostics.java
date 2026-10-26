@@ -9,13 +9,18 @@ final class Diagnostics {
         SharedPreferences p=context.getSharedPreferences("settings",0);
         SharedPreferences.Editor e=p.edit().putString("last_event",message).putLong("last_event_time",System.currentTimeMillis());
         if(key!=null)e.putLong("diag_"+key,p.getLong("diag_"+key,0)+1);
+        if("image_failed".equals(key))e.putString("last_image_error",message);
         if("source_failed".equals(key))e.putString("last_source_error",message);
         e.apply();
+    }
+    static synchronized void imageRejections(Context context,int count){
+        if(count<=0)return;SharedPreferences p=context.getSharedPreferences("settings",0);
+        p.edit().putLong("diag_image_rejected",p.getLong("diag_image_rejected",0)+count).apply();
     }
     static String text(Context context,boolean access){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         long when=p.getLong("last_event_time",0);
-        return "CoinBot 0.6.0\n"+summary(context)+
+        return "CoinBot 0.7.0\n"+summary(context)+
             "\nBenachrichtigungszugriff: "+(access?"erteilt":"fehlt")+
             "\nMitteilungsdienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
             "\nMitteilungsausloeser: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
@@ -34,6 +39,8 @@ final class Diagnostics {
             "\nEntwuerfe aus Mitteilung (unverifiziert): "+p.getLong("diag_draft_notification",0)+
             "\nEntwuerfe mit bestaetigtem Link: "+p.getLong("diag_draft_verified",0)+
             "\nBildreparaturen: "+p.getLong("diag_image_repaired",0)+
+            "\nVerworfene ähnliche Bilder: "+p.getLong("diag_image_rejected",0)+
+            "\nLetzter Bildfehler: "+p.getString("last_image_error","keiner")+
             "\nBildfehler: "+p.getLong("diag_image_failed",0)+
             "\nLetzter Status: "+p.getString("last_event","Noch keine X-Meldung")+
             (when>0?"\nZeit: "+DateFormat.getDateTimeInstance().format(new Date(when)):"")+
