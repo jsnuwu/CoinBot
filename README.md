@@ -16,7 +16,13 @@ Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
 ## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
 
-Unter [`android/`](android/README.md) liegt die Android-App **0.4.1** (Android 8+). Ihr Auslöser ist
+Die Oberfläche hat drei Bereiche: **Übersicht**, **Entwürfe** und **Einstellungen**. Die Übersicht
+zeigt tatsächlichen Empfangsstatus, nächste Aktion und neuesten Entwurf. Einrichtung führt durch
+fehlende Berechtigungen und Anmeldung; bloße Dienstbereitschaft wird nicht als bestätigter Login
+angezeigt. Entwürfe sind nach bestätigtem Post-Link filterbar und öffnen eine eigene Detailansicht.
+Technische Diagnose ist erst bei Bedarf sichtbar. Mehr dazu: [UI/UX-Konzept](docs/android-ui.md).
+
+Unter [`android/`](android/README.md) liegt die Android-App **0.5.0** (Android 8+). Ihr Auslöser ist
 **ausschließlich eine eigene X-Handy-Mitteilung**. Die Profil-Rundläufe aus 0.4.0 wurden nach der
 Nutzerkorrektur entfernt: Ohne Mitteilung keine automatische X-Seitenabfrage, auch nicht beim Start.
 Bereits sichtbare echte X-Mitteilungen innerhalb von fünf Minuten dürfen beim Verbinden eingereiht werden.
@@ -29,7 +35,7 @@ Text muss nach Leerzeichen-/URL-Bereinigung übereinstimmen; erkennbar gekürzte
 langen eindeutigen Präfix. Übersetzte/abweichende Mitteilungstexte können nicht zugeordnet werden.
 
 **Einrichtung:** X direkt in CoinBot anmelden, Benachrichtigungszugriff und Post-Glocke in der eigenen
-X-App erlauben, danach **„Auf X-Mitteilungen warten“** aktivieren. Die Linksuche kann zum Test sichtbar
+X-App erlauben, danach **„Empfang starten“** auf der Übersicht aktivieren. Die Linksuche kann zum Test sichtbar
 bleiben; sie bleibt ohne Auftrag leer. Entwürfe erhalten lesbaren Namen, Ticker, lokale Themenzeichnung,
 Beschreibung mit Post-Bezug und den Quellenlink in `twitter` / `source_post`. Die Vorlagenlogik ist
 kein Sprachmodell und keine Viralitätsprognose. Keine manuelle Coin-Erstellung oder Pump-Veröffentlichung.
@@ -48,8 +54,8 @@ je 24 Stunden und 60 Sekunden Abstand bleiben erhalten. Alte `notification_unver
 nicht nachträglich als bestätigt markiert. Konto, Datenbank und bestehende Entwürfe bleiben beim lokalen Update erhalten.
 
 Verifiziert: **137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-Regel-, 25 Mitteilungs-/Zuordnungs-
-und 18 DOM-Fixture-Prüfungen**, Ruff, Offline-Demo, APK-Build und Signaturprüfung. Fixtures sind kein
-Beweis echter X-Zustellung. Die lokale Update-APK hat denselben Signierer wie 0.4.0; CI-APKs können
+18 DOM-Fixture- und 18 UX-Zustandsprüfungen**, Ruff, Offline-Demo, APK-Build und Signaturprüfung. Fixtures sind kein
+Beweis echter X-Zustellung. Die lokale Update-APK hat denselben Signierer wie 0.4.1; CI-APKs können
 einen anderen Test-Schlüssel verwenden. Details: [Android-Anleitung](android/README.md).
 
 ## Kostenlos ausprobieren

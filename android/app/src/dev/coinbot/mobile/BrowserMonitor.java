@@ -23,23 +23,24 @@ public final class BrowserMonitor extends Service {
     private int generation;
     private boolean busy,scheduled;
     public static boolean running(){return live!=null;}
+    static boolean resolving(){return live!=null&&live.busy;}
     static WebView readerView(){return live==null?null:live.web;}
     private SharedPreferences prefs(){return getSharedPreferences("settings",0);}
     static void startFromUser(Context context){
         context.startForegroundService(new Intent(context,BrowserMonitor.class));
     }
     static void pauseForLogin(Context context){
-        context.getSharedPreferences("settings",0).edit().putBoolean("browser_enabled",false).putString("browser_state","Für X-Anmeldung pausiert").apply();
+        context.getSharedPreferences("settings",0).edit().putBoolean("browser_enabled",false).putString("browser_ui_state","paused").putString("x_auth_state","unverified").putString("browser_state","Für X-Anmeldung pausiert").apply();
         context.stopService(new Intent(context,BrowserMonitor.class));
     }
     static void stopFromUser(Context context){
-        context.getSharedPreferences("settings",0).edit().putBoolean("browser_enabled",false).putString("browser_state","Vom Nutzer pausiert").apply();
+        context.getSharedPreferences("settings",0).edit().putBoolean("browser_enabled",false).putString("browser_ui_state","paused").putString("browser_state","Vom Nutzer pausiert").apply();
         context.stopService(new Intent(context,BrowserMonitor.class));
     }
     static boolean requestNotification(NotificationMatch.Request request){
         BrowserMonitor current=live;if(current==null)return false;
         current.handler.post(()->{
-            if(System.currentTimeMillis()<current.blockedUntil){current.state("X-Zugriff begrenzt; diese Mitteilung bleibt ohne Link");return;}
+            if(System.currentTimeMillis()<current.blockedUntil){current.state("backoff","X-Zugriff begrenzt; diese Mitteilung bleibt ohne Link");return;}
             String outcome=current.inbox.offer(request,System.currentTimeMillis());
             if("added".equals(outcome)){if(!current.busy)current.schedule(0);}
             else Diagnostics.note(current,"duplicate".equals(outcome)?"duplicate":null,"X-Mitteilung nicht eingereiht: "+outcome);
@@ -58,7 +59,7 @@ public final class BrowserMonitor extends Service {
         if(web!=null)return START_NOT_STICKY;
         live=this;startedAt=System.currentTimeMillis();blockedUntil=prefs().getLong("browser_blocked_until",0);
         prefs().edit().putBoolean("browser_mode",true).putBoolean("browser_enabled",true).putBoolean("enabled",true).putLong("browser_started_at",startedAt).apply();
-        state("Wartet auf X-Benachrichtigung · keine regelmäßigen Profilabfragen");
+        state("waiting","Wartet auf X-Benachrichtigung · keine regelmäßigen Profilabfragen");
         try{
             ByteArrayOutputStream out=new ByteArrayOutputStream();
             try(InputStream in=getAssets().open("x-profile.js")){byte[] data=new byte[4096];int n;while((n=in.read(data))!=-1){out.write(data,0,n);if(out.size()>100_000)throw new IOException();}}
@@ -69,7 +70,7 @@ public final class BrowserMonitor extends Service {
                 public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return !BrowserRules.xPage(r.getUrl().toString());}
                 public void onPageFinished(WebView v,String url){
                     if(!busy||scheduled||"about:blank".equals(url)||!url.equals(v.getUrl()))return;
-                    if(!expectedPage(url)){halt("X verlangt eine Anmeldung oder Bestätigung. X-Anmeldung öffnen.");return;}
+                    if(!expectedPage(url)){loginRequired("X verlangt eine Anmeldung oder Bestätigung. X-Anmeldung öffnen.");return;}
                     scheduled=true;int ticket=generation;handler.postDelayed(()->sample(ticket,0),2000);
                 }
                 public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame()&&busy&&expectedPage(r.getUrl().toString()))failure("X-Webseite nicht erreichbar (Fehler "+e.getErrorCode()+")",false);}
@@ -85,7 +86,8 @@ public final class BrowserMonitor extends Service {
         }catch(Exception e){halt("X-Webansicht konnte nicht gestartet werden");}
         return START_NOT_STICKY;
     }
-    private void state(String value){prefs().edit().putString("browser_state",value).apply();}
+    private void state(String value){state("waiting",value);}
+    private void state(String kind,String value){prefs().edit().putString("browser_ui_state",kind).putString("browser_state",value).apply();}
     private void schedule(long delay){handler.removeCallbacks(next);handler.postDelayed(next,delay);}
     private final Runnable next=()->loadNext();
     private void loadNext(){
@@ -95,14 +97,14 @@ public final class BrowserMonitor extends Service {
         current=inbox.poll(now);if(current==null)return;
         if(!Core.accounts(prefs().getString("accounts","realDonaldTrump,elonmusk")).contains(current.author)){finishCycle();return;}
         account=current.author;busy=true;scheduled=false;int ticket=++generation;
-        state("Sucht ausschließlich den Post aus der X-Mitteilung von @"+account);
+        state("looking","Sucht ausschließlich den Post aus der X-Mitteilung von @"+account);
         web.loadUrl("https://x.com/"+account+(current.postId.isEmpty()?"":"/status/"+current.postId));
         handler.postDelayed(()->{if(generation==ticket&&busy)failure("X-Linksuche lädt zu lange; kein Post zugeordnet",false);},30_000);
     }
     private boolean expectedPage(String url){return current!=null&&(current.postId.isEmpty()?BrowserRules.profilePage(url,current.author):BrowserRules.postPage(url,current.author,current.postId));}
     private void sample(int ticket,int attempt){
         if(web==null||!busy||ticket!=generation)return;
-        if(!expectedPage(web.getUrl())){halt("X-Anmeldung oder Bestätigung erforderlich");return;}
+        if(!expectedPage(web.getUrl())){loginRequired("X-Anmeldung oder Bestätigung erforderlich");return;}
         String expected=account;
         web.evaluateJavascript(script,encoded->{
             if(ticket!=generation||web==null||!busy)return;
@@ -115,7 +117,7 @@ public final class BrowserMonitor extends Service {
                 JSONArray rows=snapshot.optJSONArray("posts");
                 if(!signedIn||rows==null||rows.length()==0){
                     if(attempt<5){handler.postDelayed(()->sample(ticket,attempt+1),2000);return;}
-                    if(!signedIn){halt("X-Anmeldung nicht bestätigt. X-Anmeldung öffnen und direkt bei X anmelden.");return;}
+                    if(!signedIn){loginRequired("X-Anmeldung nicht bestätigt. X-Anmeldung öffnen und direkt bei X anmelden.");return;}
                     state("@"+expected+": Mitteilungs-Post nicht lesbar; kein Link übernommen");finishCycle();return;
                 }
                 List<BrowserRules.Post> posts=new ArrayList<>();
@@ -125,7 +127,7 @@ public final class BrowserMonitor extends Service {
                     BrowserRules.Post post=BrowserRules.post(expected,row.optString("url"),row.optString("text"),row.optString("createdAt"),row.optBoolean("context",true),row.optBoolean("truncated",true),now,0);
                     if(post!=null)posts.add(post);
                 }
-                prefs().edit().putLong("browser_last_read",now).putString("browser_last_account",expected).apply();
+                prefs().edit().putLong("browser_last_read",now).putString("browser_last_account",expected).putString("x_auth_state","observed").apply();
                 BrowserRules.Post match=NotificationMatch.select(current,posts,now);
                 if(match==null&&attempt<5){handler.postDelayed(()->sample(ticket,attempt+1),2000);return;}
                 if(match==null)state("Kein eindeutiger Treffer zur X-Mitteilung; kein fremder/neuerer Post übernommen. Wartet auf nächste Mitteilung.");
@@ -150,11 +152,13 @@ public final class BrowserMonitor extends Service {
     private void blankPage(){if(web!=null){web.stopLoading();web.loadUrl("about:blank");}}
     private void finishCycle(){busy=false;scheduled=false;current=null;++generation;blankPage();schedule(0);}
     private void failure(String message,boolean limited){
-        Diagnostics.note(this,"source_failed",message);state(message);busy=false;scheduled=false;++generation;blankPage();
+        Diagnostics.note(this,"source_failed",message);state(limited?"backoff":"error",message);busy=false;scheduled=false;++generation;blankPage();
         if(limited){blockedUntil=System.currentTimeMillis()+900_000;prefs().edit().putLong("browser_blocked_until",blockedUntil).apply();}
         if(limited)inbox.clear();current=null;schedule(0);
     }
-    private void halt(String message){busy=false;++generation;state(message);prefs().edit().putBoolean("browser_enabled",false).apply();stopSelf();}
+    private void halt(String message){halt("error",message);}
+    private void loginRequired(String message){prefs().edit().putString("x_auth_state","required").apply();halt("login",message);}
+    private void halt(String kind,String message){busy=false;++generation;state(kind,message);prefs().edit().putBoolean("browser_enabled",false).apply();stopSelf();}
     public void onTimeout(int startId,int type){halt("Android-Zeitlimit für Hintergrund-Datensynchronisierung erreicht. App öffnen und erneut starten.");}
     public void onDestroy(){
         if(live==this)live=null;handler.removeCallbacksAndMessages(null);++generation;worker.shutdownNow();

@@ -71,6 +71,15 @@ final class LocalStore extends SQLiteOpenHelper {
         }
         return result;
     }
+    List<Map<String,String>> ready(){return rows("SELECT * FROM posts WHERE name IS NOT NULL ORDER BY time DESC",null);}
+    String readyVersion(){try(Cursor cursor=getReadableDatabase().rawQuery("SELECT COUNT(*),MAX(time) FROM posts WHERE name IS NOT NULL",null)){cursor.moveToFirst();return cursor.getLong(0)+":"+cursor.getLong(1);}}
+    Map<String,String> find(String id){List<Map<String,String>> rows=rows("SELECT * FROM posts WHERE id=?",new String[]{id});return rows.isEmpty()?null:rows.get(0);}
+    private List<Map<String,String>> rows(String sql,String[] args){
+        List<Map<String,String>> result=new ArrayList<>();
+        try(Cursor cursor=getReadableDatabase().rawQuery(sql,args)){
+            while(cursor.moveToNext()){Map<String,String> row=new HashMap<>();for(String column:cursor.getColumnNames())row.put(column,cursor.getString(cursor.getColumnIndexOrThrow(column)));result.add(row);}
+        }return result;
+    }
     void recordEvent(Context context, String message) {
         context.getSharedPreferences("settings", 0).edit().putString("last_event", message)
             .putLong("last_event_time", System.currentTimeMillis()).apply();

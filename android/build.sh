@@ -5,7 +5,7 @@ sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 if [[ -z "$sdk" ]]; then echo 'Set ANDROID_HOME to an Android SDK with platform 36 and build-tools 36.0.0.' >&2; exit 1; fi
 tools="$sdk/build-tools/36.0.0"
 platform="$sdk/platforms/android-36/android.jar"
-rm -rf build/classes build/core-tests build/link-tests build/browser-tests
+rm -rf build/classes build/core-tests build/link-tests build/browser-tests build/ui-tests
 mkdir -p build/classes
 # No Gradle or third-party runtime dependencies. Compile against the Android SDK.
 javac --release 8 -cp "$platform" -d build/classes app/src/dev/coinbot/mobile/*.java
@@ -17,6 +17,8 @@ java -cp build/link-tests dev.coinbot.mobile.NotificationLinksTest
 javac --release 8 -d build/browser-tests app/src/dev/coinbot/mobile/{Core,BrowserRules,NotificationMatch}.java tests/dev/coinbot/mobile/{BrowserRulesTest,NotificationMatchTest}.java
 java -cp build/browser-tests dev.coinbot.mobile.BrowserRulesTest
 java -cp build/browser-tests dev.coinbot.mobile.NotificationMatchTest
+javac --release 8 -d build/ui-tests app/src/dev/coinbot/mobile/{Core,UiState,UiTime}.java tests/dev/coinbot/mobile/UiStateTest.java
+java -cp build/ui-tests dev.coinbot.mobile.UiStateTest
 "$tools/aapt2" link -I "$platform" --manifest AndroidManifest.xml -A app/assets -o build/resources.apk
 find build/classes -name '*.class' -print > build/class-files.txt
 "$tools/d8" --lib "$platform" --min-api 26 --output build @build/class-files.txt

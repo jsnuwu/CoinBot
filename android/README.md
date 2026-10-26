@@ -1,25 +1,42 @@
-# CoinBot Android 0.4.1 – Mitteilung → passender Tweet-Link → Entwurf
+# CoinBot Android 0.5.0 – Übersicht, Entwürfe und Einstellungen
 
 Version 0.4.1 korrigiert den Umfang von 0.4.0: **Keine regelmäßige Profilbeobachtung.** Eine eigene
 X-Handy-Mitteilung ist der einzige automatische Auslöser. Login und Link-Auflösung laufen lokal auf
 dem Handy, ohne kostenpflichtige X-API. Die App veröffentlicht weiterhin keine Coins auf Pump.fun.
 
-## Einrichtung
+## Oberfläche und Einrichtung
 
-1. Update über die bestehende App installieren. Lokale Signatur, Konto, Entwürfe und Einstellungen
-   bleiben erhalten. Die Namenseingabe und ihr vorgemerktes Trennzeichenproblem wurden nicht geändert.
-2. **Benachrichtigungszugriff öffnen** und CoinBot Zugriff auf die eigenen X-Mitteilungen geben.
-   Bei seitlich installierten Apps kann zusätzlich **Apps → CoinBot → Eingeschränkte Einstellungen
-   zulassen** nötig sein. In X bei den gewünschten Accounts die Post-Glocke aktivieren.
-3. Falls nötig **X öffnen / anmelden** wählen und direkt bei X anmelden. Ein direkter X-Nutzername-
-   Login ist vorgesehen; externe Google-SSO-Seiten werden in CoinBot nicht geöffnet.
-4. **Anmeldung abgeschlossen · Auf X-Mitteilungen warten** bzw. auf der Startseite
-   **Auf X-Mitteilungen warten** drücken. Den sichtbaren Android-Dienst erlauben.
-5. Die **Linksuche ansehen** kann zum ersten Test offen bleiben. Ohne Auftrag bleibt die Ansicht leer.
-   Bei einer echten frischen X-Mitteilung wird nur deren Post gesucht. Nach dem Auftrag wartet der
-   Bot wieder. Beim Verbinden werden auch noch sichtbare echte Mitteilungen bis fünf Minuten Alter geprüft.
-6. Ergebnisse über **Entwürfe und Status öffnen** ansehen. Ein zugeordneter Entwurf enthält Name,
-   Ticker, Themenbild, Beschreibung und den Originalpost-Link zum Öffnen/Kopieren.
+Die untere Navigation trennt **Übersicht**, **Entwürfe** und **Einstellungen**. Die Übersicht zeigt
+Zustand und nächste Aktion: Mitteilungszugriff erlauben, Dienst-Mitteilung erlauben, bei X anmelden,
+Empfang starten, verbinden oder pausieren. Neue Nutzer werden so durch die Einrichtung geführt.
+Bestehende Web-Sitzungen werden nicht bloß wegen des Updates als ungültig behandelt.
+
+1. Die Update-APK über 0.4.1 installieren. Lokale Signatur, Konto, Einstellungen und Entwürfe bleiben erhalten.
+2. Auf der Übersicht die angebotene nächste Aktion ausführen. Die Anmeldung bleibt direkt in der
+   X-Webseite. Nach **Empfang starten** kehrt die App zur Übersicht zurück.
+3. In der eigenen X-App bei den eingestellten Accounts die Post-Glocke aktivieren.
+4. Unter **Einstellungen → X-Accounts** werden die bekannten Nutzernamen gepflegt. Textänderungen
+   bleiben beim Tabwechsel erhalten und werden erst nach **Accounts speichern** übernommen.
+   Der vorgemerkte Parser-/Trennzeichenfehler wurde nicht geändert.
+5. Ein echter Mitteilungsauftrag aktualisiert die Übersicht und später **Entwürfe**. Die Liste lässt
+   sich nach **Alle**, **Mit Post-Link** und **Unbestätigt** filtern. Ein Entwurf öffnet Bild, Ticker,
+   Originalpost-Link sowie – wenn vorhanden – tatsächlichen Quelltext. Quelle und lokaler Entwurf
+   bleiben sichtbar getrennt von einer Veröffentlichung.
+6. Technische Zustände und Zähler stehen unter **Einstellungen → Diagnose ansehen**; dort können sie
+   kopiert werden. **Linksuche ansehen** ist ein optionales Kontrollfenster mit klarer Warteansicht
+   statt einer scheinbar kaputten leeren Seite. Der Empfang startet weiterhin nur nach Mitteilungen.
+
+**Design und Bedienbarkeit:** dunkle Navy-Oberflächen, Mint-Akzent, klare Typografie, große
+Berührungsflächen (mindestens 48 dp), Statusbeschriftung zusätzlich zu Farben, scrollbare Details,
+Bildvorschau-Cache und gezielte Aktualisierung statt Neuaufbau der Einstellungen alle zwei Sekunden.
+Es gibt keine dauerhaft blinkende Aktivität im Leerlauf. Kurze Navigationsübergänge respektieren
+Androids abgeschaltete Animationen. Große Ansichten erhalten zwei Spalten auf der Übersicht.
+X-Sitzung löschen erfordert eine Bestätigung und zeigt danach den erneuten Anmeldebedarf.
+
+Die Anmeldung wird nur nach einer echten lesbaren X-Seite als zuletzt beobachtet markiert. Der
+Knopf **Empfang starten** allein bestätigt weder die Anmeldung noch einen erfolgreich gelesenen
+Post. Ein verlorener Android-Dienst, fehlende Zugriffe, X-Sperren und normale Wartebereitschaft
+haben getrennte Zustände. Nach Ablauf einer Wartefrist zeigt die UI keine endlose alte Sperre an.
 
 Dienstbereitschaft bedeutet zunächst nur: Empfänger ist eingeschaltet. Der Bot prüft die X-Anmeldung
 nicht mehr durch einen unaufgeforderten Profilbesuch. Erst ein tatsächlicher Linkauftrag bestätigt,
@@ -69,7 +86,7 @@ Native App-Logik liest keine Cookies, Passwörter, Tokens oder Formulareingaben.
 normalen lokalen WebView-Sitzungsspeicher; kein eigener Server, keine JavaScript-Bridge, kein Zugriff
 auf Dateien/Content-URIs, keine unsicheren TLS-Ausnahmen. **X-Anmeldung lokal löschen** beendet den
 Dienst und entfernt CoinBots Web-Cookies/Storage; die eigenständige X-App bleibt getrennt.
-**Mitteilungsverarbeitung pausieren** bzw. **Pausieren** in der Android-Mitteilung beendet den Dienst.
+**Empfang pausieren** bzw. **Pausieren** in der Android-Mitteilung beendet den Dienst.
 
 Netzwerkfehler beenden den betreffenden Auftrag. HTTP 403/429 verwirft Warteschlangenaufträge und
 blockiert neue Linkaufträge für 15 Minuten. Danach gibt es keinen automatischen Wiederholungsbesuch;
@@ -81,10 +98,10 @@ Android kann einen wartenden Dienst oder eine nicht sichtbare Webansicht drossel
 Hintergrunddienst-Art auf sechs Stunden pro 24 Stunden. Es gibt keinen Boot-/Zwangsneustart, keinen
 bezahlten Ersatzdienst und keine 24/7-/Sekundengarantie. Für den ersten Gerätetest Linksuche offen lassen.
 
-## Verifikation von 0.4.1
+## Verifikation von 0.5.0
 
 137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-Regel-, 25 Mitteilungs-/Zuordnungs- und 18
-DOM-Fixture-Prüfungen bestehen; außerdem Ruff, Offline-Demo, SDK-Build und APK-/Signierer-Prüfung.
+DOM-Fixture- sowie 18 UX-Zustandsprüfungen bestehen; außerdem Ruff, Offline-Demo, SDK-Build und APK-/Signierer-Prüfung.
 Die neuen Tests prüfen insbesondere Leerlauf ohne Auftrag, begrenzte Queue, veraltete/doppelte
 Mitteilungen, eindeutigen Text-/ID-Abgleich und den Fall, dass ein anderer Tweet inzwischen neuer ist.
 Sie ersetzen keinen echten X-Login oder Android-Hintergrund-/Benachrichtigungstest. Die Nutzerdaten
