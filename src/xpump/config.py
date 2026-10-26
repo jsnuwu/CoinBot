@@ -40,8 +40,20 @@ class Config:
     free_hosting: bool = False
     public_x_accounts: str = ""
     public_x_poll_seconds: int = 120
+    free_pump_enabled: bool = False
+    pump_creator_address: str = ""
 
     def __post_init__(self):
+        if type(self.free_pump_enabled) is not bool:
+            raise ValueError("free_pump_enabled must be a boolean")
+        if self.free_pump_enabled and self.mode != "preview":
+            raise ValueError("Free website listings cannot be combined with the onchain live publisher")
+        if self.pump_creator_address:
+            from solders.pubkey import Pubkey
+            try:
+                Pubkey.from_string(self.pump_creator_address)
+            except ValueError as exc:
+                raise ValueError("Invalid Pump creator wallet address") from exc
         if self.mode not in ("preview", "live") or self.idea_provider not in ("templates", "ollama"):
             raise ValueError("Unknown operating mode or idea provider")
         if type(self.x_enabled) is not bool or type(self.configure_x_on_start) is not bool:

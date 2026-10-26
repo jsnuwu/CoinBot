@@ -9,7 +9,7 @@
 </head>
 <body>
   <main>
-    <header><a class="brand" href="/">CoinBot<span>FREE PREVIEW</span></a><span class="badge">Pump.fun-Launch deaktiviert</span></header>
+    <header><a class="brand" href="/">CoinBot<span>FREE PREVIEW</span></a><span id="publication-status" class="badge">Pump.fun-Launch deaktiviert</span></header>
     <section class="intro"><p class="eyebrow">VOM POST ZUR MEME-IDEE</p><h1>X beobachten.<br>Automatisch vorbereiten.</h1>
       <p>Neue öffentliche X-Posts werden automatisch auf passende Meme-Themen geprüft. Daraus entstehen Name, Ticker und Bild.
       Die Erstellung nutzt lokale Vorlagen. Hier wird kein echter Coin veröffentlicht.</p>
@@ -17,6 +17,9 @@
     <section class="notice" aria-label="Betriebsgrenzen"><strong>Was kostenlos funktioniert</strong>
       <p>Die X-Einbettungsansicht wird experimentell abgefragt – ohne API-Key und ohne garantierte Aktualität.
       Render Free schläft nach Inaktivität ein; dann pausiert die Überwachung. Solana-Launches sind hier deaktiviert.</p>
+    </section>
+    <section class="notice"><strong>Kostenlose Pump.fun-Anbindung</strong><p id="pump-state">Status wird geladen.</p>
+      <div id="pump-listings" class="list"></div>
     </section>
     <div class="columns">
       <section class="panel"><div class="section-head"><h2>X-Beobachtung</h2><span id="feed-status" class="badge">Verbinde …</span></div>

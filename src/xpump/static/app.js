@@ -22,6 +22,17 @@ async function loadStatus() {
     const response = await fetch('/api/status');
     if (!response.ok) throw new Error('Status nicht erreichbar');
     const data = await response.json(), monitor = data.monitor;
+    const creation = data.free_creation || {state:'disabled',records:[]};
+    const creationLabels = {disabled:'Noch nicht aktiviert.',authentication_required:'Pump.fun-Anmeldung und Zuordnung zum Besitzerkonto fehlen.',unverified_session:'Pump.fun-Sitzung vorhanden, aber noch nicht vom Dienst bestätigt.',authenticated:'Pump.fun-Konto bestätigt. Ein neuer passender Post kann den kostenlosen Website-Ablauf auslösen.',wrong_account:'Die Anmeldung gehört nicht zum eingestellten Besitzerkonto.',unknown_creation_blocks_queue:'Der letzte Erstellungsversuch hat einen unklaren Ausgang. Weitere Versuche sind angehalten.',listed:'Pump.fun hat eine Coin-Adresse zurückgegeben. Kein Erstkauf und keine vom Bot signierte Solana-Transaktion.'};
+    el('pump-state').textContent = creationLabels[creation.state] || 'Status unbekannt.';
+    el('publication-status').textContent = creation.state === 'listed' ? 'Pump.fun-Listing erstellt' : creation.state === 'authenticated' ? 'Kostenloser Listing-Ablauf verbunden' : 'Pump.fun-Anbindung nicht bereit';
+    el('pump-listings').replaceChildren();
+    for (const item of creation.records || []) {
+      if (item.status !== 'listed' || !item.mint) continue;
+      const link = document.createElement('a'); link.href = 'https://pump.fun/coin/' + encodeURIComponent(item.mint);
+      link.textContent = item.mint; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      const row = document.createElement('article');row.append(link);el('pump-listings').append(row);
+    }
     const labels = {starting:'Prüfung startet',polling:'Öffentliche Ansicht',degraded:'Quelle gestört',not_configured:'Kein Account gesetzt'};
     el('feed-status').textContent = labels[monitor.status] || 'Unbekannter Status';
     el('feed-detail').textContent = `Experimentelle Abfrage alle ${data.poll_seconds} Sekunden, solange der Dienst läuft. ${monitor.checks} Prüfungen seit Start.`;

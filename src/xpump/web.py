@@ -1,4 +1,4 @@
-"""Free preview website. This module has no publisher, wallet or paid API integration."""
+"""Automatic website previews and optional free Pump website listings. No Solana signer."""
 import asyncio
 import base64
 from contextlib import asynccontextmanager, suppress
@@ -8,12 +8,15 @@ import json
 from pathlib import Path
 import re
 
+import httpx
+
 from starlette.applications import Starlette
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.routing import Route
 
 from .ideas import TemplateIdeas
+from .free_pump import FreePumpCreator
 from .pipeline import Pipeline
 from .public_x import PublicMonitor
 from .store import Store
@@ -31,9 +34,12 @@ def create_app(cfg):
         try:
             with store.single_runner():
                 store.prune()
-                pipeline = Pipeline(preview_cfg, store, TemplateIdeas())
+                client = httpx.AsyncClient(timeout=15, follow_redirects=False)
+                creator = FreePumpCreator(preview_cfg, store, client)
+                pipeline = Pipeline(preview_cfg, store, TemplateIdeas(), free_creator=creator)
                 monitor = PublicMonitor(preview_cfg, pipeline)
                 app.state.store, app.state.monitor = store, monitor
+                app.state.free_creator = creator
                 task = asyncio.create_task(monitor.run())
                 try:
                     yield
@@ -41,6 +47,7 @@ def create_app(cfg):
                     task.cancel()
                     with suppress(asyncio.CancelledError):
                         await task
+                    await client.aclose()
         finally:
             store.db.close()
 
@@ -62,6 +69,7 @@ def create_app(cfg):
         monitor = request.app.state.monitor
         snapshot = request.app.state.store.snapshot()
         return JSONResponse({"mode": "preview", "launch_enabled": False, "source": "public_x_embed_experimental",
+                             "free_creation": request.app.state.free_creator.snapshot(),
                              "ephemeral_storage": cfg.free_hosting, "monitor": monitor.state,
                              "previews": snapshot["recent_posts"], "poll_seconds": cfg.public_x_poll_seconds})
 

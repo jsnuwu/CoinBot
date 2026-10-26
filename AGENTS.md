@@ -7,6 +7,10 @@
   kostenpflichtige Disk/Datenbank/Worker. X als Quelle beibehalten; keine RSS-Umstellung.
 - Der Gratisbetrieb ist ausdrücklich Preview: öffentliche X-Einbettung nur experimentell, keine
   Sekunden-/24/7-Zusage, keine gebührenpflichtigen API-Fallbacks und keine echten Launches.
+- Neuer Nutzerauftrag: kostenlosen Pump-Website-Ablauf für automatische Listings vorbereiten.
+  Der experimentelle Adapter nutzt ausschließlich First-Party-HTTP, keinen Erstkauf und keine
+  Solana-Signatur. Standard aus; echte Konto-Anmeldung und End-to-End-Verifikation fehlen noch.
+  Mock-Tests niemals als Beweis einer erfolgreichen Pump-Veröffentlichung bezeichnen.
 - Sleep, temporären Speicher und Quellenstörungen sichtbar machen. Keine künstlichen Keep-alive-Pings.
 - Standard bleibt `preview`; reale Aktivierung erst mit ausdrücklich festgelegten SOL-Limits,
   separater Wallet und vereinbartem Datenzugang. Keine kostenpflichtigen Dienste selbst buchen.

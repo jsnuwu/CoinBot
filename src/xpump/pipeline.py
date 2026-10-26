@@ -10,8 +10,9 @@ from .store import Blocked
 
 
 class Pipeline:
-    def __init__(self, cfg, store, ideas, publisher=None, started_at=None):
+    def __init__(self, cfg, store, ideas, publisher=None, started_at=None, free_creator=None):
         self.cfg, self.store, self.ideas, self.publisher = cfg, store, ideas, publisher
+        self.free_creator = free_creator
         self.started_at = started_at or utcnow()
         if cfg.mode == "live" and publisher is None:
             raise ValueError("Live pipeline requires publisher")
@@ -63,6 +64,8 @@ class Pipeline:
                 (output / "metadata.json").write_text(json.dumps(idea.metadata(post, "meme.png"), indent=2))
                 result = {"status": "preview", "path": str(output)}
                 self.store.outcome(post.root_id, "preview")
+                if self.free_creator and self.cfg.free_pump_enabled:
+                    result = await self.free_creator.create(post, idea)
             else:
                 result = await self.publisher.publish(post, idea)
             self.store.finish(post.root_id, result["status"],

@@ -6,7 +6,8 @@ Meme-Namen, Ticker, Beschreibung und PNG vor. Kein API-Key und keine Wallet erfo
 
 **Ein verlässlicher 24/7-Sekunden-Launcher mit echten Onchain-Tokens für 0 € ist damit nicht erreicht.**
 Render Free schläft bei Inaktivität ein, X garantiert die öffentliche Ansicht nicht, und echte
-Solana-Veröffentlichungen können Gebühren kosten. Die Website kann deshalb keine Tokens veröffentlichen.
+Solana-Veröffentlichungen können Gebühren kosten. Der ursprüngliche Onchain-Weg bleibt deaktiviert. Ein zusätzlich vorbereiteter kostenloser
+Website-Adapter benötigt noch eine echte Pump-Kontoanmeldung und externe Verifikation.
 Die frühere CLI-Launch-Pipeline bleibt als getrennte, standardmäßig deaktivierte Funktion im Code.
 
 Token-Erstellung ist kein Geschäftsmodell mit garantierten Einnahmen. Ein Launch erzeugt weder Käufer
@@ -112,8 +113,8 @@ Prüfstand 25.10.2026, keine Preisgarantie:
 | Solana-Veröffentlichung | Netzwerk-/Prioritätsgebühren und benötigte Account-Einlagen; keine Nullkosten-Zusage |
 | RPC / Dauerbetrieb | Eigener Zugang/Rechner oder Hosting; keine bezahlten Dienste automatisch angelegt |
 
-Der diskutierte kostenlose Offchain-Website-Ablauf wird hier **nicht** automatisiert. Dieses Projekt
-verwendet die dokumentierte Onchain-Create-Schnittstelle. PumpPortal ist ein Drittanbieter, nicht Pump.fun.
+Die ursprüngliche CLI verwendet die dokumentierte Onchain-Create-Schnittstelle. Zusätzlich ist ein
+experimenteller Adapter für den kostenlosen Website-Ablauf vorbereitet; siehe unten. PumpPortal ist ein Drittanbieter, nicht Pump.fun.
 Die Dokumentation zeigt Beispiele mit Eigenkauf. Ob `amount=0` aktuell akzeptiert wird, wurde nicht mit
 einem echten Launch geprüft; bei Ablehnung stoppt der Bot, statt stillschweigend SOL für einen Kauf auszugeben.
 
@@ -233,7 +234,8 @@ Einstellungen unter **Environment** (für dauerhafte Änderungen auch die Bluepr
 | `XPUMP_X_ENABLED` | `false`; damit ist nur der **bezahlte offizielle Stream** gemeint |
 | `XPUMP_MODE` / `XPUMP_ENABLE_MAINNET` | `preview` / `false` |
 
-Die kostenlose Website importiert keine Publisher-/Wallet-Funktion und besitzt keinen Launch-Endpunkt.
+Die Website besitzt keinen manuellen Launch-Endpunkt und keinen Solana-Signer. Der optionale
+`FreePumpCreator` nutzt ausschließlich den kostenlosen First-Party-Website-Ablauf, wenn separat aktiviert.
 `xpump web` lehnt Live-Konfigurationen auch unabhängig vom Gratis-Schalter ab. Für den Gratisbetrieb
 keine Wallet-Secrets hinterlegen. Die kleine Instanz nutzt lokale Vorlagen; Ollama ist dort nicht installiert.
 
@@ -285,7 +287,7 @@ Budgetgrenzen, Neustarts/Deduplizierung, Kandidatenfilter, falsche Transaktionsd
 Transfers/Käufe, Prioritätsgebühren, Simulation, Sendetimeouts und Finalisierung. GitHub Actions führt
 Tests, Linter und Offline-Demo aus.
 
-Lokal verifiziert: **110 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
+Lokal verifiziert: **115 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
 inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Der Blueprint wurde gegen das offizielle Render-Schema
 validiert; ausschließlich lesende Web-Endpunkte, abgeschaltete manuelle Erstellung und experimenteller X-Reader getestet.
 Die öffentliche X-Ansicht wurde außerdem separat ohne API-Key gelesen (20 gelieferte Posts).
@@ -301,3 +303,37 @@ Validierung abschalten, um eine Antwort künstlich „passend“ zu machen.
 
 Keine Profitabilitäts- oder Sekunden-Garantie. Reale Aktivierung bleibt ein separater, bewusst
 konfigurierter Schritt; die automatische Entscheidung pro Post ist bereits implementiert.
+
+## Kostenloser Pump-Website-Ablauf: Adapter vorbereitet, Konto-Verifikation fehlt
+
+Bei erneuter Prüfung am 26.10.2026 zeigte Pump.funs eigener öffentlicher Website-Code einen
+kostenlosen Erstellungsweg ohne Erstkauf: `POST /coins/create-v2`, authentifiziert mit einer
+Pump-Session, gibt eine Mint-Adresse zurück. Die UI zeichnet diesen Zweig als `isFree: true`,
+`tokensBought: 0`, `solPaid: 0` auf. Beim ersten Kauf wird getrennt die Onchain-Erstellung behandelt.
+Das korrigiert die frühere zu pauschale Aussage, jede Website-Erstellung erfordere vom Ersteller SOL.
+
+Prüfquelle: [Erstellungsseite](https://pump.fun/create), insbesondere die von ihr eingebundenen
+Dateien `1d42gkuet1_-2.js` (Erstellungsablauf), `2b-_n6eypkqhx.js` (Typdefinition der Website-Routen)
+und `0xjg-q9n0jeif.js` (Metadaten-Upload). Dies ist eine beobachtete Website-Schnittstelle,
+keine zugesicherte öffentliche Developer-API. Verfügbarkeit und Authentifizierung können sich ändern.
+
+`src/xpump/free_pump.py` bildet diesen Ablauf ab: Konto über `/auth/my-profile` prüfen, Bild/Metadaten
+über `/ipfs/token-metadata` hochladen und `/coins/create-v2` einmalig aufrufen. Keine RPC-Aufrufe,
+keine Zahlungsbeträge, kein PumpPortal, keine automatische Konto-Registrierung, keine Solana-Signatur.
+Ein Netzwerkfehler beim Erstellen wird als unbekannter Ausgang gespeichert; keine Wiederholung und
+keine weiteren Erstellungen, bis der Ausgang geklärt ist. Eine zurückgegebene Adresse wird als
+Website-Listing angezeigt, nicht als nachgewiesener Onchain-Kauf oder Gewinn.
+
+**Noch nicht mit einem echten Konto ausgeführt oder verifiziert.** Die bestehenden Mock-Tests prüfen
+den programmierten Ablauf und verhindern Käufe/RPC-Aufrufe; sie beweisen keine externe Verfügbarkeit.
+Der Schalter `XPUMP_FREE_PUMP_ENABLED` bleibt im Blueprint `false`.
+Für die Verbindung sind die öffentliche Besitzeradresse (`XPUMP_PUMP_CREATOR_ADDRESS`) und eine
+legitime gültige Pump-Session (`PUMP_ACCESS_TOKEN`, nur im Secret-Speicher) vorgesehen. Der Adapter
+verweigert eine Session, deren Kontoadresse nicht zur Besitzeradresse passt. Die einmalige
+Anmeldung/Session-Einrichtung muss noch mit dem Besitzerkonto verbunden und getestet werden;
+keine Passwörter, Private Keys, Seed Phrases oder Sitzungscookies in den Chat senden.
+
+Die bisherige Bezeichnung `mode=preview` verhindert weiterhin den Onchain-Publisher. Ein optionales
+kostenloses Website-Listing ist davon getrennt und wird über `free_creation` im Status ausgewiesen.
+Die experimentelle X-Quelle kann weiterhin HTTP 429 liefern; Render Free schläft weiterhin ein.
+Der neue Adapter allein erfüllt deshalb noch keine zuverlässige Sekunden-/24/7-Automatisierung.

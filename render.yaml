@@ -44,3 +44,5 @@ services:
         value: "200"
       - key: XPUMP_COOLDOWN_SECONDS
         value: "60"
+      - key: XPUMP_FREE_PUMP_ENABLED
+        value: "false"
