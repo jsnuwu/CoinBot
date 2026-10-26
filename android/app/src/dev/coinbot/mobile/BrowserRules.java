@@ -14,6 +14,11 @@ public final class BrowserRules {
     public static boolean profilePage(String value,String handle){
         try{return xPage(value)&&("/"+handle).equalsIgnoreCase(new URI(value).getPath());}catch(Exception e){return false;}
     }
+    public static boolean postPage(String value,String handle,String id){
+        String canonical=Core.postUrl(value);
+        Core.Candidate candidate=Core.candidate(canonical,Collections.singleton(handle));
+        return candidate!=null&&candidate.id.equals(id);
+    }
     public static final class Post {
         public final String id,author,text,url,createdAt;
         private Post(Core.Candidate c,String author,String text,String createdAt){this.id=c.id;this.author=author;this.text=text;this.url=c.url;this.createdAt=createdAt;}

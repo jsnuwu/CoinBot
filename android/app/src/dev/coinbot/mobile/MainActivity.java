@@ -21,23 +21,23 @@ public final class MainActivity extends Activity {
     public void onCreate(Bundle saved){
         super.onCreate(saved);
         ScrollView scroll=new ScrollView(this);scroll.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());return insets;});content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);content.setPadding(dp(22),dp(28),dp(22),dp(28));content.setBackgroundColor(Color.rgb(16,14,24));scroll.addView(content);setContentView(scroll);
-        label("CoinBot · Android 0.4.0",27,true);
-        label("Automatische X-Beobachtung",18,true);
-        label("Bei X anmelden, Beobachtung starten, neue Originalposts automatisch als Entwürfe mit Name, Ticker, Bild und Quellenlink vorbereiten. Lokal, regelbasiert und ohne kostenpflichtige X-API.",14,false);
+        label("CoinBot · Android 0.4.1",27,true);
+        label("X-Mitteilung → Originalpost-Link → Entwurf",18,true);
+        label("Der Bot reagiert nur auf Handy-Mitteilungen von X. Er ordnet den dazugehörigen Post samt Link zu und bereitet daraus einen Entwurf vor. Ohne Mitteilung keine automatische X-Abfrage.",14,false);
         label("Experimenteller Webzugang: Erst auf deinem Handy prüfen. X-Anmeldeprüfungen und Android können den Ablauf unterbrechen. Es werden keine Coins veröffentlicht.",14,false);
         state=label("Status wird geladen …",14,false);
         label("X-Anmeldung",18,true);
         Button login=new Button(this);login.setText("X öffnen / anmelden");login.setOnClickListener(v->startActivity(new Intent(this,XLoginActivity.class)));content.addView(login);
-        Button start=new Button(this);start.setText("Mit gespeicherter Anmeldung starten");start.setOnClickListener(v->startBrowser());content.addView(start);
-        Button pause=new Button(this);pause.setText("Web-Beobachtung pausieren");pause.setOnClickListener(v->{BrowserMonitor.stopFromUser(this);update();});content.addView(pause);
-        Button reader=new Button(this);reader.setText("Automatische X-Leseansicht öffnen");reader.setOnClickListener(v->startActivity(new Intent(this,XReadActivity.class)));content.addView(reader);
+        Button start=new Button(this);start.setText("Auf X-Mitteilungen warten");start.setOnClickListener(v->startBrowser());content.addView(start);
+        Button pause=new Button(this);pause.setText("Mitteilungsverarbeitung pausieren");pause.setOnClickListener(v->{BrowserMonitor.stopFromUser(this);update();});content.addView(pause);
+        Button reader=new Button(this);reader.setText("Linksuche ansehen");reader.setOnClickListener(v->startActivity(new Intent(this,XReadActivity.class)));content.addView(reader);
         Button logout=new Button(this);logout.setText("X-Anmeldung lokal löschen");logout.setOnClickListener(v->{BrowserMonitor.stopFromUser(this);XSession.clear();Toast.makeText(this,"Lokale X-Webanmeldung gelöscht",Toast.LENGTH_SHORT).show();update();});content.addView(logout);
         label("Beobachtete X-Nutzernamen",16,true);
         EditText accounts=new EditText(this);accounts.setSingleLine(false);accounts.setText(prefs().getString("accounts","realDonaldTrump,elonmusk"));accounts.setTextColor(Color.WHITE);content.addView(accounts);
-        enabled=new Switch(this);enabled.setText("Optional: X-Mitteilungen als Auslöser nutzen");enabled.setTextColor(Color.WHITE);enabled.setChecked(prefs().getBoolean("enabled",false));content.addView(enabled);
+        enabled=new Switch(this);enabled.setText("X-Mitteilungen verarbeiten");enabled.setTextColor(Color.WHITE);enabled.setChecked(prefs().getBoolean("enabled",false));content.addView(enabled);
         Button save=new Button(this);save.setText("Profile und Auslöser speichern");save.setOnClickListener(v->{try{Core.accounts(accounts.getText().toString());prefs().edit().putString("accounts",accounts.getText().toString()).putBoolean("enabled",enabled.isChecked()).apply();Toast.makeText(this,"Gespeichert",Toast.LENGTH_SHORT).show();if(enabled.isChecked())connectReceiver();update();}catch(IllegalArgumentException e){Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show();}});content.addView(save);
-        label("Optional: X-Mitteilungen als Auslöser",16,true);
-        label("Die Web-Beobachtung prüft die eingestellten Profile auch ohne Mitteilungen. Post-Glocke und Benachrichtigungszugriff können einen Account vorziehen. Nach Web-Aktivierung entstehen neue Entwürfe nur aus tatsächlich gelesenen Originalposts mit Link.",14,false);
+        label("Post-Glocke und Mitteilungszugriff",16,true);
+        label("In der eigenen X-App die Post-Glocke einschalten und CoinBot Benachrichtigungszugriff erteilen. Ohne auslesbare Post-ID wird nur zum empfangenen Text kurz nachgeschlagen. Regelmäßige Profilbesuche sind ausgeschaltet.",14,false);
         Button permission=new Button(this);permission.setText("Benachrichtigungszugriff öffnen");permission.setOnClickListener(v->startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));content.addView(permission);
         Button reconnect=new Button(this);reconnect.setText("Empfang neu verbinden");reconnect.setOnClickListener(v->{connectReceiver();update();});content.addView(reconnect);
         Button diagnostics=new Button(this);diagnostics.setText("Diagnose kopieren");diagnostics.setOnClickListener(v->{ClipboardManager clipboard=(ClipboardManager)getSystemService(CLIPBOARD_SERVICE);clipboard.setPrimaryClip(ClipData.newPlainText("CoinBot-Diagnose",Diagnostics.text(this,hasAccess())));Toast.makeText(this,"Diagnose ohne Nachrichtentexte kopiert",Toast.LENGTH_SHORT).show();});content.addView(diagnostics);
@@ -45,8 +45,9 @@ public final class MainActivity extends Activity {
     }
     protected void onResume(){super.onResume();if(enabled!=null)enabled.setChecked(prefs().getBoolean("enabled",false));if(hasAccess()&&prefs().getBoolean("enabled",false)&&!XListener.attached())connectReceiver();clock.post(refresh);}
     protected void onPause(){clock.removeCallbacks(refresh);super.onPause();}
-    private boolean hasAccess(){String access=Settings.Secure.getString(getContentResolver(),"enabled_notification_listeners");if(access==null)return false;ComponentName own=new ComponentName(this,XListener.class);for(String entry:access.split(":"))if(own.equals(ComponentName.unflattenFromString(entry)))return true;return false;}
+    private boolean hasAccess(){return XListener.hasAccess(this);}
     private void startBrowser(){
+        if(!hasAccess()){Toast.makeText(this,"Bitte Benachrichtigungszugriff erlauben und danach erneut starten",Toast.LENGTH_LONG).show();startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));return;}
         if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},41);return;}
         BrowserMonitor.startFromUser(this);startActivity(new Intent(this,XReadActivity.class));
     }

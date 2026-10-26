@@ -16,39 +16,41 @@ Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
 ## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
 
-Unter [`android/`](android/README.md) liegt die Android-App **0.4.0** (Android 8+). Sie bietet jetzt
-zusätzlich eine lokale X-Webanmeldung: Der Nutzer meldet sich direkt auf der X-Seite im WebView an.
-Ein sichtbarer, pausierbarer Android-Dienst besucht die ausgewählten Profile und liest neue Posts
-mit Text, Autor, Datum und Original-Link. Dafür wird kein kostenpflichtiger X-API-Key verwendet.
-Anmeldedaten und Web-Sitzung verbleiben im Android-WebView; keine Cookie-/Token-Extraktion,
-keine native JavaScript-Bridge und keine Übertragung an Render. Die App tätigt keine X-Aktionen.
+Unter [`android/`](android/README.md) liegt die Android-App **0.4.1** (Android 8+). Ihr Auslöser ist
+**ausschließlich eine eigene X-Handy-Mitteilung**. Die Profil-Rundläufe aus 0.4.0 wurden nach der
+Nutzerkorrektur entfernt: Ohne Mitteilung keine automatische X-Seitenabfrage, auch nicht beim Start.
+Bereits sichtbare echte X-Mitteilungen innerhalb von fünf Minuten dürfen beim Verbinden eingereiht werden.
 
-Nach Anmeldung: **„Anmeldung abgeschlossen · Beobachtung starten“** drücken, Android-Mitteilung
-für den Dienst erlauben und zum ersten Test die automatische Leseansicht offen lassen. Neue
-Entwürfe erhalten einen lesbaren Namen, einen deterministischen Ticker, eine Beschreibung mit
-Post-Bezug, ein lokal gezeichnetes Themenbild und den Quellenlink in `twitter` / `source_post`.
-Die Begriffs-/Bildableitung bleibt regelbasiert, kein Sprachmodell und keine Viralitätsprognose.
-Die App enthält keine manuelle Coin-Erstellung, keinen Wallet-Signer und keine Pump-Veröffentlichung.
+Eine bekannte Post-ID führt direkt zum betreffenden Post. Fehlt sie, öffnet der lokale angemeldete
+Webleser das zugehörige Profil nur für diesen Auftrag und sucht den konkreten Mitteilungstext samt
+passendem Zeitraum. Er übernimmt maximal einen eindeutig zugeordneten Post-Link. Ein inzwischen
+neuerer anderer Post oder mehrdeutige Texttreffer werden nicht als Ersatz verwendet. Vollständiger
+Text muss nach Leerzeichen-/URL-Bereinigung übereinstimmen; erkennbar gekürzter Text benötigt einen
+langen eindeutigen Präfix. Übersetzte/abweichende Mitteilungstexte können nicht zugeordnet werden.
 
-**Experimentell, noch kein echter Konto-/Gerätetest der Web-Anbindung:** X kann WebView-Anmeldungen
-ablehnen, Bestätigungen verlangen oder die Webseite ändern. Android kann eine nicht sichtbare
-Webansicht drosseln bzw. den Dienst beenden. Der Dienst respektiert die `dataSync`-Zeitlimits
-(neuere Android-Versionen begrenzen insbesondere Hintergrundlaufzeit); keine 24/7-/Sekundenzusage.
-Neue Posts kommen nur ab dem aktuellen Start und innerhalb von fünf Minuten in Betracht.
-Profile werden nacheinander besucht (mindestens 60 Sekunden je Profil); erfolgreiche Zyklen haben
-15 Sekunden Abstand. Mitteilungen können ein Profil vorziehen. Es gelten weiterhin 20 Entwürfe
-je 24 Stunden und 60 Sekunden Mindestabstand. Bei HTTP 403/429 pausiert der Webleser 15 Minuten.
+**Einrichtung:** X direkt in CoinBot anmelden, Benachrichtigungszugriff und Post-Glocke in der eigenen
+X-App erlauben, danach **„Auf X-Mitteilungen warten“** aktivieren. Die Linksuche kann zum Test sichtbar
+bleiben; sie bleibt ohne Auftrag leer. Entwürfe erhalten lesbaren Namen, Ticker, lokale Themenzeichnung,
+Beschreibung mit Post-Bezug und den Quellenlink in `twitter` / `source_post`. Die Vorlagenlogik ist
+kein Sprachmodell und keine Viralitätsprognose. Keine manuelle Coin-Erstellung oder Pump-Veröffentlichung.
 
-Die ursprüngliche Benachrichtigungsdiagnose bleibt erhalten. Nach Aktivierung des Webmodus erzeugt
-sie keine neuen unverifizierten Textentwürfe; Mitteilungen dienen dann nur noch als Leseauslöser.
-Vorhandene Entwürfe und Einstellungen bleiben erhalten. Der neue Herkunftsstatus `x_browser_linked`
-unterscheidet beobachtete Web-Posts von alten `notification_unverified`-Entwürfen. Die zuletzt
-gelesene Profilansicht, Lesungszeit und Anzahl verknüpfter Entwürfe stehen getrennt in der Diagnose.
+Die X-Sitzung bleibt im lokalen Android-WebView; keine Passwort-/Cookie-/Token-Extraktion und keine
+Übertragung an Render, keine native JavaScript-Bridge. Anmeldung wird erst beim echten Linkauftrag
+anhand der X-Ansicht geprüft. Die Bereitschaftsanzeige behauptet keine bereits erfolgreiche Anmeldung.
+Der sichtbare Dienst ist pausierbar. X-Sicherheitsprüfungen, geändertes Layout, Android-Drosselung und
+`dataSync`-Zeitlimits können den Ablauf unterbrechen; keine 24/7-/Sekundenzusage. Ein Login-/Gerätetest
+fehlt weiterhin. Keine kostenpflichtige X-API oder gebührenpflichtiger Ersatzdienst.
 
-Verifiziert: **137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-Regel- und 18 DOM-Fixture-Prüfungen**,
-Ruff, Offline-Demo, APK-Build und Signaturprüfung. Fixtures sind kein Beweis erfolgreicher Anmeldung
-oder tatsächlicher X-Zustellung. Die lokal bereitgestellte Update-APK verwendet denselben Signierer
-wie 0.3.2. CI-APKs können einen anderen Test-Schlüssel verwenden. Details: [Android-Anleitung](android/README.md).
+Aufträge sind begrenzt, werden dedupliziert und veralten nach fünf Minuten; leere Warteschlange führt
+zu keinem neuen Seitenaufruf. Nach jedem Auftrag wird die X-Seite entladen. Quellenfehler wiederholen nicht den Profilbesuch. HTTP 403/429 sperrt
+weitere Aufträge für 15 Minuten; danach wird erst eine neue Mitteilung verarbeitet. Maximal 20 Entwürfe
+je 24 Stunden und 60 Sekunden Abstand bleiben erhalten. Alte `notification_unverified`-Entwürfe werden
+nicht nachträglich als bestätigt markiert. Konto, Datenbank und bestehende Entwürfe bleiben beim lokalen Update erhalten.
+
+Verifiziert: **137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-Regel-, 25 Mitteilungs-/Zuordnungs-
+und 18 DOM-Fixture-Prüfungen**, Ruff, Offline-Demo, APK-Build und Signaturprüfung. Fixtures sind kein
+Beweis echter X-Zustellung. Die lokale Update-APK hat denselben Signierer wie 0.4.0; CI-APKs können
+einen anderen Test-Schlüssel verwenden. Details: [Android-Anleitung](android/README.md).
 
 ## Kostenlos ausprobieren
 

@@ -14,8 +14,9 @@ java -cp build/core-tests dev.coinbot.mobile.CoreTest
 javac --release 8 -d build/link-tests tests/stubs/android/{app,content,net,os}/*.java \
   app/src/dev/coinbot/mobile/{Core,NotificationLinks}.java tests/dev/coinbot/mobile/NotificationLinksTest.java
 java -cp build/link-tests dev.coinbot.mobile.NotificationLinksTest
-javac --release 8 -d build/browser-tests app/src/dev/coinbot/mobile/{Core,BrowserRules}.java tests/dev/coinbot/mobile/BrowserRulesTest.java
+javac --release 8 -d build/browser-tests app/src/dev/coinbot/mobile/{Core,BrowserRules,NotificationMatch}.java tests/dev/coinbot/mobile/{BrowserRulesTest,NotificationMatchTest}.java
 java -cp build/browser-tests dev.coinbot.mobile.BrowserRulesTest
+java -cp build/browser-tests dev.coinbot.mobile.NotificationMatchTest
 "$tools/aapt2" link -I "$platform" --manifest AndroidManifest.xml -A app/assets -o build/resources.apk
 find build/classes -name '*.class' -print > build/class-files.txt
 "$tools/d8" --lib "$platform" --min-api 26 --output build @build/class-files.txt

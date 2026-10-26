@@ -15,8 +15,8 @@ final class Diagnostics {
     static String text(Context context,boolean access){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         long when=p.getLong("last_event_time",0);
-        return "CoinBot 0.4.0\n"+summary(context)+
-            "\nBenachrichtigungszugriff (optional): "+(access?"erteilt":"fehlt")+
+        return "CoinBot 0.4.1\n"+summary(context)+
+            "\nBenachrichtigungszugriff: "+(access?"erteilt":"fehlt")+
             "\nMitteilungsdienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
             "\nMitteilungsausloeser: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
             "\nAccounts: "+p.getString("accounts","realDonaldTrump,elonmusk")+
@@ -39,6 +39,7 @@ final class Diagnostics {
     static String summary(Context context){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         return "X-Webdienst: "+(BrowserMonitor.running()?"aktiv":"pausiert / beendet")+
+            "\nAusloeser: ausschließlich X-Handy-Mitteilung; keine Profil-Rundläufe"+
             "\nX-Webstatus: "+p.getString("browser_state","Noch nicht angemeldet / gestartet")+
             "\nBeobachtungsstart: "+(p.getLong("browser_started_at",0)>0?DateFormat.getDateTimeInstance().format(new Date(p.getLong("browser_started_at",0))):"noch nicht gestartet")+
             "\nLetztes lesbares Profil: "+p.getString("browser_last_account","keines")+

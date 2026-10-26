@@ -18,7 +18,7 @@ public final class XReadActivity extends Activity {
         super.onCreate(saved);
         LinearLayout layout=new LinearLayout(this);layout.setOrientation(LinearLayout.VERTICAL);
         layout.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());return insets;});
-        TextView intro=new TextView(this);intro.setPadding(16,12,16,12);intro.setText("Automatische X-Leseansicht · keine Bedienung der Webseite. Profile wechseln selbst. Für den ersten Test offen lassen; Hintergrundbetrieb hängt von Android und X ab.");layout.addView(intro);
+        TextView intro=new TextView(this);intro.setPadding(16,12,16,12);intro.setText("Linksuche nur nach empfangener X-Mitteilung. Ohne Auftrag bleibt diese Ansicht leer; kein Profilwechsel im Leerlauf. Für den ersten Test offen lassen.");layout.addView(intro);
         state=new TextView(this);layout.addView(state);
         frame=new FrameLayout(this);layout.addView(frame,new LinearLayout.LayoutParams(-1,0,1));
         Button results=new Button(this);results.setText("Entwürfe und Status öffnen");results.setOnClickListener(v->{startActivity(new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();});layout.addView(results);

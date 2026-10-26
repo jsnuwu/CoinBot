@@ -12,6 +12,9 @@
   APK-Build, DOM-Fixtures und JVM-Tests ersetzen keinen echten Anmelde-/Gerätetest.
 - Der Webleser muss als sichtbarer pausierbarer Android-Dienst laufen. Hintergrund-/WebView- und
   dataSync-Zeitlimits respektieren; keine 24/7-/Sekundenzusage oder Umgehung von X-Anmeldeprüfungen.
+- Android-Webzugriff ausschließlich als Reaktion auf eine echte eigene X-Handy-Mitteilung.
+  Keine Profil-Rundläufe oder Suche nach anderen Posts im Leerlauf. Fehlt eine Post-ID, genau den
+  Mitteilungstext/Zeitraum zuordnen; bei mehreren/keinen Treffern keinen beliebigen neuesten Post verwenden.
 - Benachrichtigungsentwürfe ohne bestätigten Link haben `notification_unverified` / `publishable=false`.
   Niemals allein aus Anzeigename und Mitteilungstext automatisch veröffentlichen.
 - Aktuelle Kostenanforderung: kostenlos bleiben. Render-Blueprint nur Webservice `plan: free`, keine

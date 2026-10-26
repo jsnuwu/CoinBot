@@ -26,11 +26,12 @@ public final class XLoginActivity extends Activity {
             public void onReceivedSslError(WebView v,SslErrorHandler handler,SslError error){handler.cancel();state.setText("Sichere Verbindung zu X fehlgeschlagen. Anmeldung angehalten.");}
             public void onPageFinished(WebView v,String url){CookieManager.getInstance().flush();}
         });
-        Button start=new Button(this);start.setText("Anmeldung abgeschlossen · Beobachtung starten");start.setOnClickListener(v->startMonitor());layout.addView(start);
+        Button start=new Button(this);start.setText("Anmeldung abgeschlossen · Auf X-Mitteilungen warten");start.setOnClickListener(v->startMonitor());layout.addView(start);
         Button cancel=new Button(this);cancel.setText("Zurück · Beobachtung pausiert");cancel.setOnClickListener(v->finish());layout.addView(cancel);
         setContentView(layout);web.loadUrl("https://x.com/i/flow/login");
     }
     private void startMonitor(){
+        if(!XListener.hasAccess(this)){state.setText("Benachrichtigungszugriff erlauben, zurückkehren und erneut starten.");startActivity(new Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));return;}
         if(android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},41);return;}
         CookieManager.getInstance().flush();BrowserMonitor.startFromUser(this);startActivity(new Intent(this,XReadActivity.class));finish();
     }

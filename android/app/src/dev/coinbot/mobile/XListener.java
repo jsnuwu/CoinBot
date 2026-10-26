@@ -11,6 +11,12 @@ public final class XListener extends NotificationListenerService {
     private static volatile XListener live;
     private final ExecutorService queue = new ThreadPoolExecutor(1,1,0,TimeUnit.SECONDS,new ArrayBlockingQueue<Runnable>(32));
     public static boolean attached(){return live!=null;}
+    static boolean hasAccess(Context context){
+        String value=android.provider.Settings.Secure.getString(context.getContentResolver(),"enabled_notification_listeners");
+        if(value==null)return false;ComponentName own=new ComponentName(context,XListener.class);
+        for(String entry:value.split(":"))if(own.equals(ComponentName.unflattenFromString(entry)))return true;
+        return false;
+    }
     public static void refreshActive(){XListener current=live;if(current!=null)current.scanActive();}
     public void onListenerConnected(){live=this;note(null,"Benachrichtigungsdienst verbunden");scanActive();}
     public void onListenerDisconnected(){if(live==this)live=null;note(null,"Benachrichtigungsdienst getrennt");}
@@ -43,8 +49,9 @@ public final class XListener extends NotificationListenerService {
         Diagnostics.links(this,links.summary(candidate!=null));
         if(prefs.getBoolean("browser_mode",false)){
             String author=Core.notificationAuthor(title,allowed);
-            if(author!=null&&BrowserMonitor.requestProfile(author))note(null,"X-Mitteilung priorisiert Webprüfung für @"+author);
-            else note(null,"X-Webprüfung wartet; Browserdienst starten bzw. Absender prüfen");
+            NotificationMatch.Request request=NotificationMatch.request(author,body,event.getPostTime(),candidate,System.currentTimeMillis());
+            if(request!=null&&BrowserMonitor.requestNotification(request))note(null,"Linksuche für empfangene X-Mitteilung von @"+author+" eingereiht");
+            else note(null,"Keine Linksuche: Auslöserdienst fehlt oder Mitteilung nicht zuordenbar");
             return;
         }
         if(candidate==null){
