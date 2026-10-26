@@ -15,7 +15,7 @@ final class Diagnostics {
     static String text(Context context,boolean access){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         long when=p.getLong("last_event_time",0);
-        return "CoinBot 0.3.0\nZugriff: "+(access?"erteilt":"fehlt")+
+        return "CoinBot 0.3.1\nZugriff: "+(access?"erteilt":"fehlt")+
             "\nDienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
             "\nBeobachtung: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
             "\nAccounts: "+p.getString("accounts","realDonaldTrump,elonmusk")+

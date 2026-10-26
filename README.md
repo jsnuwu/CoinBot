@@ -16,14 +16,19 @@ Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
 ## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
 
-Unter [`android/`](android/README.md) liegt die Android-App 0.3 (Android 8+). Sie verarbeitet
+Unter [`android/`](android/README.md) liegt die Android-App 0.3.1 (Android 8+). Sie verarbeitet
 Benachrichtigungen der eigenen X-App und bereitet passende Entwürfe direkt auf dem Handy vor.
 Der erste Benutzerbericht bestätigte empfangene X-Meldungen, aber keinen verwertbaren Post-Link.
 Version 0.2 kann deshalb vollständige Mitteilungstexte mit zugeordnetem Titel auch ohne Link
 als **unverifizierte lokale Entwürfe** verarbeiten. Diese dürfen nicht automatisch veröffentlicht
 werden. Ein bestätigter Post-Link erhält einen getrennten Herkunftsstatus.
 
-APK-Build, Signaturprüfung und 99 reine Java-Prüfungen bestehen. Version 0.3 wurde noch nicht auf
+Bekannte Post-IDs werden ohne X-API-Aufruf in Originalpost-URLs umgewandelt. Der Posttext muss
+seinen eigenen Link nicht enthalten. Version 0.3.1 schreibt den Quellenlink in `twitter` und
+`source_post` der Metadaten und zeigt ihn am Entwurf. Fehlen ID und URL in den Mitteilungsdaten,
+bleiben diese Felder aus; Text und Anzeigename allein erlauben keine zuverlässige Link-Zuordnung.
+
+APK-Build, Signaturprüfung und 117 reine Java-Prüfungen bestehen. Version 0.3.1 wurde noch nicht auf
 dem Handy getestet; die neue Titelzuordnung und der vollständige Ablauf müssen dort geprüft werden.
 Die App zeigt Empfangszähler, Dienstverbindung und Filtergründe; `Diagnose kopieren` enthält keine
 Nachrichtentexte oder Sitzungsschlüssel. Einstellungen und vorhandene Entwürfe bleiben bei der
@@ -62,6 +67,10 @@ die Beobachtung aus. Die Website enthält keine Eingabefelder und keinen Endpunk
 Die automatische Beobachtung prüft standardmäßig alle 120 Sekunden. Die Website zeigt Prüfzeit,
 gelieferte Post-Zeit und Quellenfehler getrennt an. Die Website zeigt ausschließlich automatisch verarbeitete Posts und daraus entstandene Entwürfe.
 PNG und Metadaten bereits vorbereiteter Entwürfe lassen sich herunterladen.
+Neue Metadaten enthalten den aus der Post-ID gebildeten Originalpost-Link sowohl als `source_post`
+als auch im üblichen Social-Feld `twitter`. Der vorbereitete Pump-Website-Adapter übergibt ihn
+beim Metadaten-Upload und beim Erstellungsaufruf; dafür ist keine zusätzliche X-Abfrage nötig.
+Die tatsächliche Darstellung auf Pump.fun ist noch nicht mit einem verbundenen Konto geprüft.
 
 ### Kostenloser X-Zugriff: experimentell
 

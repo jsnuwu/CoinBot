@@ -23,8 +23,9 @@ final class LocalStore extends SQLiteOpenHelper {
         values.put("topic_version",3);
         return getWritableDatabase().insertWithOnConflict("posts", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1 || retryOldTopic(candidate.id);
     }
-    boolean claimNotification(Core.NotificationDraft draft){
-        ContentValues v=new ContentValues();v.put("id",draft.id);v.put("url","@"+draft.author+" · ohne Post-Link");
+    boolean claimNotification(Core.NotificationDraft draft,String sourceUrl){
+        String url=Core.postUrl(sourceUrl);
+        ContentValues v=new ContentValues();v.put("id",draft.id);v.put("url",url.isEmpty()?"@"+draft.author+" · ohne Post-ID/Link":url);
         v.put("time",System.currentTimeMillis());v.put("status","Lokaler Entwurf wird geprüft");v.put("source","notification_unverified");
         v.put("topic_version",3);
         return getWritableDatabase().insertWithOnConflict("posts",null,v,SQLiteDatabase.CONFLICT_IGNORE)!=-1 || retryOldTopic(draft.id);
@@ -48,7 +49,7 @@ final class LocalStore extends SQLiteOpenHelper {
     void prune(){
         long cutoff=System.currentTimeMillis()-30L*86_400_000;
         try(Cursor c=getReadableDatabase().rawQuery("SELECT id FROM posts WHERE time<?",new String[]{Long.toString(cutoff)})){
-            while(c.moveToNext())new java.io.File(context.getFilesDir(),"drafts/"+c.getString(0)+".png").delete();
+            while(c.moveToNext())for(String suffix:new String[]{".png",".json"})new java.io.File(context.getFilesDir(),"drafts/"+c.getString(0)+suffix).delete();
         }
         getWritableDatabase().delete("posts","time<?",new String[]{Long.toString(cutoff)});
     }

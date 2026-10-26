@@ -17,7 +17,7 @@ def free_cfg(cfg, monkeypatch):
     return replace(cfg, free_pump_enabled=True, pump_creator_address=str(Keypair().pubkey()))
 
 
-def provider(cfg, mint, *, timeout=False, wrong_owner=False):
+def provider(cfg, mint, *, timeout=False, wrong_owner=False, source_url=None):
     calls = []
 
     async def handler(req):
@@ -28,10 +28,14 @@ def provider(cfg, mint, *, timeout=False, wrong_owner=False):
             return httpx.Response(200, json={"address": "wrong-owner" if wrong_owner else cfg.pump_creator_address})
         if req.url.path == "/ipfs/token-metadata":
             assert b"image/png" in req.content
+            if source_url:
+                assert ('name="twitter"\r\n\r\n' + source_url + '\r\n').encode() in req.content
             return httpx.Response(200, json={"metadataUri": "ipfs://metadata", "metadata": {"image": "ipfs://image"}})
         assert req.url.path == "/coins/create-v2" and req.method == "POST"
         body = json.loads(req.content)
-        assert set(body) == {"name", "ticker", "description", "website", "showName", "metadataUri", "image", "tokenProgram"}
+        assert set(body) == {"name", "ticker", "description", "website", "twitter", "showName", "metadataUri", "image", "tokenProgram"}
+        if source_url:
+            assert body["twitter"] == body["website"] == source_url
         if timeout:
             raise httpx.ReadTimeout("provider detail must not be logged")
         return httpx.Response(200, json={"mint": mint})
@@ -40,7 +44,7 @@ def provider(cfg, mint, *, timeout=False, wrong_owner=False):
 
 async def test_free_listing_never_uses_rpc_trading_or_paid_metadata(free_cfg, store, post, idea):
     mint = str(Keypair().pubkey())
-    calls, handler = provider(free_cfg, mint)
+    calls, handler = provider(free_cfg, mint, source_url=post.url)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         creator = FreePumpCreator(free_cfg, store, client)
         result = await creator.create(post, idea)

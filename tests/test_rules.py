@@ -45,6 +45,9 @@ async def test_preview_no_network_and_durable_dedup(cfg, store, post):
     assert (store.root / "previews/100/meme.png").read_bytes().startswith(b"\x89PNG")
     metadata = json.loads((store.root / "previews/100/metadata.json").read_text())
     assert "not affiliated" in metadata["description"]
+    # The permalink is built from the source identifier, not found in the post text.
+    assert "https://" not in post.text
+    assert metadata["twitter"] == metadata["source_post"] == post.url
     assert "mint" not in metadata
     other = Store(str(store.root))
     try:

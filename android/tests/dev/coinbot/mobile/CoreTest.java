@@ -55,6 +55,23 @@ public final class CoreTest {
         check(local.id.equals(Core.notificationDraft("Mario Nawfal","A robot on Mars",mario).id),"repeated notification deduplicates independently of updates");
         check(!local.id.equals(Core.notificationDraft("Elon Musk","A robot on Mars",mario).id),"separate selected authors have separate local drafts");
         check(Core.idea(local.text,local.id)!=null,"valid received text reaches local idea generation without X network requests");
+        String permalink=Core.metadataLink(fresh);
+        Map<String,Object> linked=Core.draftMetadata(rocket,"meme.png",permalink,true);
+        check(!local.text.contains("https://"),"original post text need not contain its own URL");
+        check(permalink.equals(linked.get("twitter"))&&permalink.equals(linked.get("source_post")),"post ID supplies the exact original post social link");
+        check(Boolean.TRUE.equals(linked.get("source_verified")),"confirmed source retains verification");
+        check(Boolean.FALSE.equals(linked.get("publishable")),"Android draft metadata cannot enable publication");
+        check("https://x.com/elonmusk/status/12345".equals(Core.postUrl("https://twitter.com/ElonMusk/status/12345?s=20")),"normalize legacy domain and strip tracking");
+        for(String invalid:new String[]{null,"", "@elonmusk · ohne Post-Link","https://x.com/elonmusk","http://x.com/elonmusk/status/123","https://x.com.evil.test/elonmusk/status/123","https://evil.test/?url=https://x.com/elonmusk/status/123","https://user@x.com/elonmusk/status/123","https://x.com/elonmusk/status/12345678901234567890"}){
+            Map<String,Object> absent=Core.draftMetadata(rocket,"meme.png",invalid,true);
+            check(!absent.containsKey("twitter")&&!absent.containsKey("source_post")&&Boolean.FALSE.equals(absent.get("source_verified")),"missing/invalid permalink must not fabricate source evidence: "+invalid);
+        }
+        Core.Candidate known=Core.candidate(permalink,mario);
+        String observed=Core.notificationSource(known,local);
+        check(permalink.equals(observed),"retain observed notification ID even if the public embed service fails");
+        check(Boolean.FALSE.equals(Core.draftMetadata(rocket,"meme.png",observed,false).get("source_verified")),"observed link never verifies notification-only content");
+        check(Core.notificationSource(Core.candidate("https://x.com/elonmusk/status/123",mario),local).isEmpty(),"different named author's link is not attached to local draft");
+        check(Core.notificationSource(null,local).isEmpty(),"notification text alone cannot manufacture an original post URL");
         try{
             for(String row:java.nio.file.Files.readAllLines(java.nio.file.Paths.get("topic-cases.tsv"),java.nio.charset.StandardCharsets.UTF_8)){
                 if(row.startsWith("# ")||row.trim().isEmpty())continue;

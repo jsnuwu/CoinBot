@@ -137,6 +137,32 @@ public final class Core {
         Matcher m=Pattern.compile("^(?:(?:tweet|status)[_:/-]?)?([0-9]{15,19})$").matcher(value);
         return m.matches()?"https://x.com/i/web/status/"+m.group(1):"";
     }
+    /** Exact post permalink, never a profile or a guessed text-search result. */
+    public static String postUrl(String value){
+        if(value==null)return "";
+        try{
+            URI u=new URI(value);
+            if(!"https".equals(u.getScheme())||u.getUserInfo()!=null||u.getPort()!=-1||
+               !("x.com".equals(u.getHost())||"twitter.com".equals(u.getHost())))return "";
+            Matcher m=Pattern.compile("^/(?:(?:i/web|i)/status/|([A-Za-z0-9_]{1,15})/status/)([0-9]{1,19})/?$").matcher(u.getPath());
+            return m.matches()?new Candidate(m.group(1)==null?"":m.group(1).toLowerCase(Locale.ROOT),m.group(2)).url:"";
+        }catch(Exception e){return "";}
+    }
+    public static String notificationSource(Candidate candidate,NotificationDraft draft){
+        if(candidate==null||draft==null)return "";
+        // A link for a different named author is not evidence for this notification draft.
+        return candidate.handle.isEmpty()||candidate.handle.equals(draft.author)?candidate.url:"";
+    }
+    public static Map<String,Object> draftMetadata(Idea idea,String image,String sourceUrl,boolean verified){
+        Map<String,Object> result=new LinkedHashMap<>();
+        result.put("name",idea.name);result.put("symbol",idea.ticker);result.put("description",idea.description);
+        result.put("image",image);result.put("showName",true);
+        String url=postUrl(sourceUrl);
+        if(!url.isEmpty()){result.put("twitter",url);result.put("source_post",url);}
+        result.put("source_verified",verified&&!url.isEmpty());
+        result.put("publishable",false); // This Android version only prepares local drafts.
+        return result;
+    }
     public static boolean authorMatches(String authorUrl, String handle) {
         try {
             URI u = new URI(authorUrl);

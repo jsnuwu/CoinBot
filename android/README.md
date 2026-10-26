@@ -1,4 +1,4 @@
-# CoinBot Android 0.3 – Benachrichtigungsempfang und lokale Entwürfe
+# CoinBot Android 0.3.1 – Benachrichtigungsempfang und lokale Entwürfe
 
 Diese App ersetzt den öffentlichen X-Timeline-Poller durch Benachrichtigungen der eigenen X-App.
 Sie benötigt keinen Server und keinen API-Key. Verarbeitung und Entwürfe bleiben auf dem Handy.
@@ -128,3 +128,27 @@ werden dadurch nicht blind erneut ausgeführt. Die Fünf-Minuten-Grenze bleibt g
 **99 Android-Core-Prüfungen**, APK-Build und Signaturprüfung bestehen. Die 14 allgemeinen Themenfälle
 werden gemeinsam von Python und Java geprüft (`topic-cases.tsv`). Die Update-Datei wird mit demselben
 lokalen Schlüssel wie zuvor signiert. Ein echter Gerätetest der Version 0.3 steht noch aus.
+
+## Änderungen in 0.3.1: Link zum Originalpost
+
+Der Post muss seinen eigenen Link nicht im Text enthalten. Liefert X eine strukturierte Post-ID
+in der Benachrichtigung, wird daraus lokal `https://x.com/i/web/status/POST_ID` gebildet. Dafür
+braucht es weder einen X-API-Key noch eine Netzwerkanfrage. Eine bereits gelieferte eindeutige
+Post-URL wird ebenfalls übernommen und von Tracking-Parametern bereinigt.
+
+Neue Entwürfe erhalten neben dem PNG eine lokale JSON-Datei mit den Standard-Metadaten und,
+sofern vorhanden, `twitter` und `source_post`. Im Entwurfsfenster kann der Quellenlink geöffnet
+werden. Ohne Post-ID/URL werden keine Links erfunden und keine Profil- oder Suchseiten als
+Originalpost ausgegeben. Die Zeichenfolge `notification_…` ist ein lokaler Duplikatschlüssel,
+keine X-Post-ID. Aus dem bloßen Mitteilungstext lässt sich die Originaladresse nicht zuverlässig
+bestimmen. Dieses Update verbessert nicht die von X bereitgestellten Benachrichtigungsdaten.
+
+Bei Ausfall der öffentlichen Einbettung bleibt eine bereits beobachtete passende Post-URL am
+unverifizierten Mitteilungsentwurf erhalten. Sie bestätigt weder Inhalt noch Identität und
+ändert `notification_unverified` / `publishable=false` nicht. Anders benannten Absendern wird
+kein Link zugeordnet. Alle Android-Entwürfe bleiben in dieser Version unveröffentlicht; die
+lokalen Bilddateinamen sind noch keine hochgeladenen Bild-URIs.
+
+**137 Python-Tests und 117 Android-Core-Prüfungen**, Ruff, Offline-Demo, APK-Build und Signaturprüfung
+bestehen. Die lokale APK verwendet denselben Signierer wie 0.3.0; Datenbankschema und Namenseingabe
+bleiben unverändert. Kein echter Handy-/Pump.fun-End-to-End-Test dieser Änderung.

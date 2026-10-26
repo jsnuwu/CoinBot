@@ -50,6 +50,7 @@ class Idea:
                             "Unofficial; not affiliated with or endorsed by the post author. "
                             "No promised value or returns."),
             "image": image_uri,
+            "twitter": post.url,
             "source_post": post.url,
             "showName": True,
         }

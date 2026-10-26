@@ -68,7 +68,7 @@ class FreePumpCreator:
         metadata = idea.metadata(post, "")
         uploaded = await self.request("POST", "/ipfs/token-metadata", data={
             "name": idea.name, "symbol": idea.symbol, "description": metadata["description"],
-            "showName": "true", "website": post.url,
+            "showName": "true", "website": post.url, "twitter": metadata["twitter"],
         }, files={"file": ("meme.png", render(idea), "image/png")})
         uri = uploaded.get("metadataUri", "")
         image = uploaded.get("metadata", {}).get("image", "")
@@ -84,7 +84,7 @@ class FreePumpCreator:
         try:
             response = await self.request("POST", "/coins/create-v2", json={
                 "name": idea.name, "ticker": idea.symbol, "description": metadata["description"],
-                "website": post.url, "showName": True, "metadataUri": uri,
+                "website": post.url, "twitter": metadata["twitter"], "showName": True, "metadataUri": uri,
                 "image": image, "tokenProgram": TOKEN_2022,
             })
             mint = str(Pubkey.from_string(response["mint"]))

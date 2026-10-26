@@ -52,7 +52,7 @@ public final class XListener extends NotificationListenerService {
         }
         Core.Candidate candidate=Core.candidate(visible.toString(),allowed);
         if(candidate==null){
-            note("no_link","Kein passender Post-Link; lokale Mitteilung wird geprüft");
+            note("no_link","Keine eindeutige Post-ID oder URL in X-Mitteilung; lokaler Entwurf ohne Quellenlink");
             if(local==null){
                 if(Core.notificationAuthor(title,allowed)==null)note("unknown_author","Absender aus X-Mitteilung nicht zur Beobachtungsliste zugeordnet");
                 else note("incomplete","X-Mitteilung enthält keinen vollständigen verwertbaren Text");
@@ -66,35 +66,38 @@ public final class XListener extends NotificationListenerService {
         if(!getSharedPreferences("settings",0).getBoolean("enabled",false))return;
         try(LocalStore store=new LocalStore(this)){
             store.prune();
-            if(candidate==null){prepareNotification(store,fallback);return;}
+            if(candidate==null){prepareNotification(store,fallback,null);return;}
             if(!store.claim(candidate)){note("duplicate","Doppelte Post-Meldung ignoriert");return;}
             if(!Core.fresh(candidate.id,System.currentTimeMillis())){store.finish(candidate.id,"Post in Warteschlange veraltet",null);note(null,"Post in Warteschlange veraltet");return;}
             if(System.currentTimeMillis()<getSharedPreferences("settings",0).getLong("x_blocked_until",0)){
-                store.finish(candidate.id,"X-Quelle in Wartezeit",null);prepareNotification(store,fallback);return;
+                store.finish(candidate.id,"X-Quelle in Wartezeit",null);prepareNotification(store,fallback,candidate);return;
             }
             try{
                 if(!store.canPrepare())throw new XReader.SourceError("Vorschlagslimit erreicht: 20 pro Tag und 60 Sekunden Mindestabstand");
                 String text=XReader.text(candidate,allowed);
                 if(!Core.fresh(candidate.id,System.currentTimeMillis()))throw new XReader.SourceError("Post während der Verarbeitung veraltet");
-                store.source(candidate.id,"post_link_verified");prepare(store,candidate.id,text,true);
+                store.source(candidate.id,"post_link_verified");prepare(store,candidate.id,text,true,candidate.url);
             }catch(XReader.SourceError e){
                 store.finish(candidate.id,e.getMessage(),null);note("source_failed",e.getMessage());
                 if(e.getMessage().contains("HTTP 429")||e.getMessage().contains("HTTP 403"))getSharedPreferences("settings",0).edit().putLong("x_blocked_until",System.currentTimeMillis()+900_000).apply();
-                prepareNotification(store,fallback);
-            }catch(Exception e){store.finish(candidate.id,"Quellenprüfung fehlgeschlagen",null);note("source_failed","Quellenprüfung fehlgeschlagen");prepareNotification(store,fallback);}
+                prepareNotification(store,fallback,candidate);
+            }catch(Exception e){store.finish(candidate.id,"Quellenprüfung fehlgeschlagen",null);note("source_failed","Quellenprüfung fehlgeschlagen");prepareNotification(store,fallback,candidate);}
         }catch(Exception e){note(null,"Lokale Verarbeitung fehlgeschlagen; kein Coin erstellt");}
     }
-    private void prepareNotification(LocalStore store,Core.NotificationDraft draft)throws Exception{
+    private void prepareNotification(LocalStore store,Core.NotificationDraft draft,Core.Candidate candidate)throws Exception{
         if(draft==null){note(null,"Kein vollständiger lokaler Mitteilungstext für einen Entwurf vorhanden");return;}
-        if(!store.claimNotification(draft)){note("duplicate","Doppelte X-Mitteilung ignoriert");return;}
-        prepare(store,draft.id,draft.text,false);
+        String url=Core.notificationSource(candidate,draft);
+        if(!store.claimNotification(draft,url)){note("duplicate","Doppelte X-Mitteilung ignoriert");return;}
+        prepare(store,draft.id,draft.text,false,url);
     }
-    private void prepare(LocalStore store,String id,String text,boolean verified)throws Exception{
+    private void prepare(LocalStore store,String id,String text,boolean verified,String sourceUrl)throws Exception{
         if(!store.canPrepare()){store.finish(id,"Vorschlagslimit erreicht",null);note(null,"Vorschlagslimit erreicht: 20 pro Tag und 60 Sekunden Mindestabstand");return;}
         Core.Idea idea=Core.idea(text,id);
         if(idea==null){store.finish(id,"Kein verwertbarer Themenbegriff oder vertraulicher Inhalt",null);note("no_topic","Kein verwertbarer Themenbegriff oder Text enthält Zugangsdaten");return;}
         File folder=new File(getFilesDir(),"drafts");if(!folder.exists()&&!folder.mkdirs())throw new java.io.IOException();
         Art.save(idea,new File(folder,id+".png"));
+        String metadata=new org.json.JSONObject(Core.draftMetadata(idea,id+".png",sourceUrl,verified)).toString(2);
+        try(java.io.Writer out=new java.io.OutputStreamWriter(new java.io.FileOutputStream(new File(folder,id+".json")),java.nio.charset.StandardCharsets.UTF_8)){out.write(metadata);}
         String status=verified?"Entwurf bereit · Post-Link bestätigt · Pump.fun fehlt":"Lokaler Entwurf · X-Mitteilung nicht per Link verifiziert · keine Veröffentlichung";
         store.finish(id,status,idea);note(verified?"draft_verified":"draft_notification",status+": "+idea.name);
     }

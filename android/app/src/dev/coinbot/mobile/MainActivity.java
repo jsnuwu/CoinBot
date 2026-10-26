@@ -20,9 +20,10 @@ public final class MainActivity extends Activity {
     public void onCreate(Bundle saved){
         super.onCreate(saved);
         ScrollView scroll=new ScrollView(this);scroll.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());return insets;});content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);content.setPadding(dp(22),dp(28),dp(22),dp(28));content.setBackgroundColor(Color.rgb(16,14,24));scroll.addView(content);setContentView(scroll);
-        label("CoinBot · Android 0.3",27,true);
+        label("CoinBot · Android 0.3.1",27,true);
         label("Automatische X-Beobachtung",18,true);
         label("Version 0.3 verarbeitet allgemeine Post-Themen, nicht nur zehn feste Meme-Motive. Die Erkennung ist lokal und regelbasiert.",14,false);
+        label("Der Originalpost-Link wird aus der Post-ID oder URL in den Mitteilungsdaten übernommen. Er muss nicht im Posttext stehen. Ohne diese Daten bleibt das Quellenfeld leer.",14,false);
         label("Diese Version prüft den Empfang auf deinem Handy und bereitet passende Entwürfe lokal vor. Die Pump.fun-Anmeldung fehlt noch: Es werden keine Coins veröffentlicht.",15,false);
         state=label("Status wird geladen …",14,false);
         Button permission=new Button(this);permission.setText("1 · Benachrichtigungszugriff öffnen");permission.setOnClickListener(v->startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));content.addView(permission);
@@ -61,6 +62,11 @@ public final class MainActivity extends Activity {
         ImageView image=new ImageView(this);image.setAdjustViewBounds(true);image.setContentDescription("Automatisch gezeichnetes Meme-Motiv");image.setImageBitmap(BitmapFactory.decodeFile(new File(getFilesDir(),"drafts/"+row.get("id")+".png").getPath()));box.addView(image);
         String source=row.get("source");String origin="post_link_verified".equals(source)?"Post-Link und X-Absender bestätigt.":"notification_unverified".equals(source)?"Nur aus X-Mitteilung abgeleitet. Originalpost nicht verifiziert. Keine Freigabe zur automatischen Veröffentlichung.":"Quellenstatus dieses älteren Entwurfs nicht bestätigt.";
         TextView note=new TextView(this);note.setText(origin+"\n\n"+row.get("description")+"\n\nKein Pump.fun-Listing erstellt.");box.addView(note);
+        String url=Core.postUrl(row.get("url"));
+        if(!url.isEmpty()){
+            TextView link=new TextView(this);link.setText("Originalpost: "+url);link.setTextIsSelectable(true);box.addView(link);
+            Button open=new Button(this);open.setText("Post-Link öffnen");open.setOnClickListener(v->{try{startActivity(new Intent(Intent.ACTION_VIEW,android.net.Uri.parse(url)));}catch(ActivityNotFoundException e){Toast.makeText(this,"Keine App zum Öffnen des Links installiert",Toast.LENGTH_SHORT).show();}});box.addView(open);
+        }
         new AlertDialog.Builder(this).setTitle(row.get("name")+" / $"+row.get("ticker")).setView(box).setPositiveButton("Schließen",null).show();
     }
     private TextView label(String value,int size,boolean bold){TextView t=new TextView(this);t.setText(value);t.setTextColor(Color.rgb(235,228,247));t.setTextSize(size);if(bold)t.setTypeface(null,Typeface.BOLD);t.setPadding(0,dp(9),0,dp(9));content.addView(t);return t;}
