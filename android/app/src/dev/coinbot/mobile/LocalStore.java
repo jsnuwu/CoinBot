@@ -7,24 +7,31 @@ import java.util.*;
 
 final class LocalStore extends SQLiteOpenHelper {
     private final Context context;
-    LocalStore(Context context) { super(context, "coinbot.db", null, 2); this.context=context.getApplicationContext(); }
+    LocalStore(Context context) { super(context, "coinbot.db", null, 3); this.context=context.getApplicationContext(); }
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE posts (id TEXT PRIMARY KEY,url TEXT,time INTEGER,status TEXT,name TEXT,ticker TEXT,theme TEXT,description TEXT,source TEXT NOT NULL DEFAULT 'legacy_link')");
+        db.execSQL("CREATE TABLE posts (id TEXT PRIMARY KEY,url TEXT,time INTEGER,status TEXT,name TEXT,ticker TEXT,theme TEXT,description TEXT,source TEXT NOT NULL DEFAULT 'legacy_link',topic_version INTEGER NOT NULL DEFAULT 3)");
         db.execSQL("CREATE INDEX posts_time ON posts(time)");
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if(oldVersion<2)db.execSQL("ALTER TABLE posts ADD COLUMN source TEXT NOT NULL DEFAULT 'legacy_link'");
+        if(oldVersion<3)db.execSQL("ALTER TABLE posts ADD COLUMN topic_version INTEGER NOT NULL DEFAULT 2");
     }
     boolean claim(Core.Candidate candidate) {
         ContentValues values = new ContentValues(); values.put("id", candidate.id); values.put("url", candidate.url);
         values.put("time", System.currentTimeMillis()); values.put("status", "Quelle wird geprüft");
         values.put("source", "post_link_pending");
-        return getWritableDatabase().insertWithOnConflict("posts", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1;
+        values.put("topic_version",3);
+        return getWritableDatabase().insertWithOnConflict("posts", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1 || retryOldTopic(candidate.id);
     }
     boolean claimNotification(Core.NotificationDraft draft){
         ContentValues v=new ContentValues();v.put("id",draft.id);v.put("url","@"+draft.author+" · ohne Post-Link");
         v.put("time",System.currentTimeMillis());v.put("status","Lokaler Entwurf wird geprüft");v.put("source","notification_unverified");
-        return getWritableDatabase().insertWithOnConflict("posts",null,v,SQLiteDatabase.CONFLICT_IGNORE)!=-1;
+        v.put("topic_version",3);
+        return getWritableDatabase().insertWithOnConflict("posts",null,v,SQLiteDatabase.CONFLICT_IGNORE)!=-1 || retryOldTopic(draft.id);
+    }
+    private boolean retryOldTopic(String id){
+        ContentValues v=new ContentValues();v.put("topic_version",3);v.put("status","Thema mit Version 0.3 erneut prüfen");v.put("time",System.currentTimeMillis());
+        return getWritableDatabase().update("posts",v,"id=? AND name IS NULL AND topic_version<3 AND status IN ('Kein passendes Meme-Thema','Kein verwertbarer Themenbegriff oder vertraulicher Inhalt')",new String[]{id})==1;
     }
     void source(String id,String source){ContentValues v=new ContentValues();v.put("source",source);getWritableDatabase().update("posts",v,"id=?",new String[]{id});}
     void finish(String id, String status, Core.Idea idea) {

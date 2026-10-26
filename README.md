@@ -16,14 +16,14 @@ Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
 ## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
 
-Unter [`android/`](android/README.md) liegt die Android-App 0.2 (Android 8+). Sie verarbeitet
+Unter [`android/`](android/README.md) liegt die Android-App 0.3 (Android 8+). Sie verarbeitet
 Benachrichtigungen der eigenen X-App und bereitet passende Entwürfe direkt auf dem Handy vor.
 Der erste Benutzerbericht bestätigte empfangene X-Meldungen, aber keinen verwertbaren Post-Link.
 Version 0.2 kann deshalb vollständige Mitteilungstexte mit zugeordnetem Titel auch ohne Link
 als **unverifizierte lokale Entwürfe** verarbeiten. Diese dürfen nicht automatisch veröffentlicht
 werden. Ein bestätigter Post-Link erhält einen getrennten Herkunftsstatus.
 
-APK-Build, Signaturprüfung und 40 reine Java-Prüfungen bestehen. Version 0.2 wurde noch nicht auf
+APK-Build, Signaturprüfung und 99 reine Java-Prüfungen bestehen. Version 0.3 wurde noch nicht auf
 dem Handy getestet; die neue Titelzuordnung und der vollständige Ablauf müssen dort geprüft werden.
 Die App zeigt Empfangszähler, Dienstverbindung und Filtergründe; `Diagnose kopieren` enthält keine
 Nachrichtentexte oder Sitzungsschlüssel. Einstellungen und vorhandene Entwürfe bleiben bei der
@@ -75,7 +75,7 @@ Störung und wartet mindestens 15 Minuten; keine Cookies, Login-Umgehung, Proxyr
 Die geltenden Bedingungen der Quelle bleiben zu beachten.
 
 Nur passende neue Originalposts nach Prozessstart kommen in die automatische Vorschau. Alte Posts,
-Replies, Retweets, erkennbare Edits/Quotes und sensible Inhalte werden nicht als neuer Anlass behandelt.
+Replies, Retweets, erkennbare Edits/Quotes und Zugangsdaten werden nicht als neuer Anlass behandelt.
 Die öffentliche Ansicht enthält nicht zwingend alle Informationen des offiziellen Streams.
 Account-Abfragen laufen parallel. Bei einem Fehler pausiert nur der betroffene Account (15–60 Minuten);
 andere werden weiter in ihrem Intervall abgefragt. Die Oberfläche zeigt den Status und nächsten
@@ -87,7 +87,7 @@ Innerhalb eines Accounts bekommen die neuesten Posts zuerst Zugriff auf das Vors
 Voreinstellung im Render-Blueprint: `@realDonaldTrump` und `@elonmusk`, jeweils mit festgelegter
 numerischer Account-ID, Abfrage alle 60 Sekunden und höchstens fünf Minuten Post-Alter. Maximal
 20 automatische Vorschläge je 24 Stunden, 60 Sekunden Mindestabstand und 200 Kandidatenprüfungen
-pro Tag; diese höheren Grenzen gelten für die kostenlosen Vorschläge, nicht als neue Geldfreigabe. Zehn lokale Cartoon-Motive erzeugen thematisch passende Bilder;
+pro Tag; diese höheren Grenzen gelten für die kostenlosen Vorschläge, nicht als neue Geldfreigabe. Bekannte Cartoon-Motive und neun zusätzliche redaktionelle Motive erzeugen themenbezogene Bilder;
 der Vorlagenmodus ist keine KI und der Relevanzwert keine Gewinnwahrscheinlichkeit.
 
 ## Zusätzlich vorhandene CLI-Launch-Pipeline (nicht Teil des Gratisbetriebs)
@@ -100,7 +100,8 @@ der Vorlagenmodus ist keine KI und der Relevanzwert keine Gewinnwahrscheinlichke
   Ticker, Motiv und Relevanz. Ein Score von 0,9 bedeutet keine 90-prozentige Gewinnchance.
 - Zehn schnelle lokale PNG-Motive: Rakete, Katze, Hund, Kaffee, Taco, Pinguin, goldene Gans, Roboter,
   Pizza und Paket. Erkannte Themen bestimmen Bild und Namen; keine Promi-Porträts oder Markenlogos.
-  Unbekannte Themen werden verworfen. Freie Ollama-Beschreibungen erhalten weiterhin das generische Motiv.
+  Sonstige Themen werden über konkrete Begriffe im Post abgeleitet und redaktionell illustriert.
+  Das ist eine lokale Heuristik ohne Aussage über Viralität oder Profit. Zugangsdaten bleiben ausgeschlossen.
 - Beschreibung und Bild kennzeichnen den Coin als inoffizielles Community-Meme, ohne behauptete
   Empfehlung des Post-Autors. Namen wie „Official Trump“ werden abgewiesen. Filter sind konservative
   Regeln, keine lückenlose semantische Prüfung aller Namen oder Sprachen.
@@ -305,7 +306,7 @@ Budgetgrenzen, Neustarts/Deduplizierung, Kandidatenfilter, falsche Transaktionsd
 Transfers/Käufe, Prioritätsgebühren, Simulation, Sendetimeouts und Finalisierung. GitHub Actions führt
 Tests, Linter und Offline-Demo aus.
 
-Lokal verifiziert: **115 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
+Lokal verifiziert: **137 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
 inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Der Blueprint wurde gegen das offizielle Render-Schema
 validiert; ausschließlich lesende Web-Endpunkte, abgeschaltete manuelle Erstellung und experimenteller X-Reader getestet.
 Die öffentliche X-Ansicht wurde außerdem separat ohne API-Key gelesen (20 gelieferte Posts).
@@ -355,3 +356,14 @@ Die bisherige Bezeichnung `mode=preview` verhindert weiterhin den Onchain-Publis
 kostenloses Website-Listing ist davon getrennt und wird über `free_creation` im Status ausgewiesen.
 Die experimentelle X-Quelle kann weiterhin HTTP 429 liefern; Render Free schläft weiterhin ein.
 Der neue Adapter allein erfüllt deshalb noch keine zuverlässige Sekunden-/24/7-Automatisierung.
+
+## Themenauswahl ab Android 0.3
+
+Die feste Meme-Wortliste ist keine Voraussetzung mehr. Allgemeine Texte erhalten einen abgeleiteten
+Themenbegriff und ein passendes redaktionelles Motiv. Der Bericht aus dem Gerätetest (`Kein passendes
+Thema: 2`) führte zu dieser Änderung. Beispielprüfung mit dem vom Nutzer gelieferten politischen
+Text: `Iran Brief` / Politikmotiv. Das ist keine Bestätigung der behaupteten Ereignisse.
+Die Heuristik arbeitet offline ohne KI-API-Rechnung; sie ersetzt keine vollständige Sprach- oder
+Trendbewertung. Sichtbare frühere Ablehnungen am alten Themenfilter können innerhalb des bestehenden
+Fünf-Minuten-Fensters einmal neu verarbeitet werden. Die neue APK erhält den lokalen Signaturschlüssel
+für ein Update mit bestehenden Einstellungen. Die Pump-Anmeldung bleibt weiterhin erforderlich.

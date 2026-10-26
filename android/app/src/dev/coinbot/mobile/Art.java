@@ -40,7 +40,39 @@ final class Art {
             case "tariff":
                 rect(c,p,Color.rgb(194,134,84),225,240,543,475,0);poly(c,p,gold,225,240,170,180,325,125,384,170);
                 poly(c,p,violet,384,170,445,125,598,180,543,240);eyes(c,p,335,385);break;
+            case "news":
+                rect(c,p,cream,195,160,573,475,16);rect(c,p,violet,220,185,548,235,4);
+                for(int y=270;y<440;y+=38){rect(c,p,ink,225,y,375,y+9,2);rect(c,p,ink,408,y,540,y+9,2);}break;
+            case "politics":
+                poly(c,p,cream,180,245,384,130,588,245);rect(c,p,violet,180,450,588,485,4);
+                for(int x=240;x<=510;x+=90)rect(c,p,cream,x,260,x+30,448,5);break;
+            case "finance":
+                rect(c,p,violet,210,350,290,475,8);rect(c,p,cream,330,270,410,475,8);rect(c,p,gold,450,180,530,475,8);
+                rect(c,p,cream,190,490,565,500,3);break;
+            case "sports":
+                circle(c,p,cream,384,320,170);circle(c,p,ink,384,320,55);
+                for(int i=0;i<5;i++){double a=i*Math.PI*2/5;circle(c,p,ink,384+(float)Math.cos(a)*125,320+(float)Math.sin(a)*125,24);}break;
+            case "transport":
+                rect(c,p,violet,230,140,538,465,45);rect(c,p,Color.CYAN,265,190,503,315,12);
+                circle(c,p,gold,295,385,22);circle(c,p,gold,473,385,22);rect(c,p,cream,255,475,285,525,0);rect(c,p,cream,483,475,513,525,0);break;
+            case "science":
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(12);p.setColor(violet);
+                for(int i=0;i<3;i++){c.save();c.rotate(i*60,384,320);c.drawOval(205,255,563,385,p);c.restore();}
+                p.setStyle(Paint.Style.FILL);circle(c,p,gold,384,320,36);break;
+            case "weather":
+                circle(c,p,gold,290,230,85);circle(c,p,cream,340,330,86);circle(c,p,cream,435,290,100);circle(c,p,cream,515,345,70);
+                rect(c,p,cream,265,330,545,410,18);for(int x=300;x<530;x+=75)rect(c,p,Color.CYAN,x,440,x+12,495,6);break;
+            case "health":
+                circle(c,p,violet,384,320,170);rect(c,p,cream,350,200,418,440,10);rect(c,p,cream,265,285,503,355,10);break;
+            case "technology":
+                rect(c,p,violet,260,195,508,445,20);rect(c,p,ink,290,225,478,415,10);
+                for(int x=285;x<500;x+=50){rect(c,p,cream,x,155,x+15,195,0);rect(c,p,cream,x,445,x+15,485,0);}
+                for(int y=235;y<420;y+=50){rect(c,p,cream,220,y,260,y+15,0);rect(c,p,cream,508,y,548,y+15,0);}break;
             default:circle(c,p,violet,384,310,180);eyes(c,p,300,345);
+        }
+        if(java.util.Arrays.asList("news","politics","finance","sports","transport","science","weather","health","technology").contains(idea.theme)){
+            String subject=idea.name.split(" ")[0];p.setTextAlign(Paint.Align.CENTER);p.setColor(cream);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(34);
+            while(p.measureText(subject)>610)p.setTextSize(p.getTextSize()-2);c.drawText(subject,384,550,p);
         }
         p.setColor(Color.WHITE);p.setTextAlign(Paint.Align.CENTER);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(54);
         while(p.measureText(idea.ticker)>650)p.setTextSize(p.getTextSize()-2);

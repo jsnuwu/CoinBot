@@ -92,7 +92,7 @@ public final class XListener extends NotificationListenerService {
     private void prepare(LocalStore store,String id,String text,boolean verified)throws Exception{
         if(!store.canPrepare()){store.finish(id,"Vorschlagslimit erreicht",null);note(null,"Vorschlagslimit erreicht: 20 pro Tag und 60 Sekunden Mindestabstand");return;}
         Core.Idea idea=Core.idea(text,id);
-        if(idea==null){store.finish(id,"Kein passendes Meme-Thema",null);note("no_topic","Themenfilter: kein passendes Meme-Motiv oder sensibler Inhalt");return;}
+        if(idea==null){store.finish(id,"Kein verwertbarer Themenbegriff oder vertraulicher Inhalt",null);note("no_topic","Kein verwertbarer Themenbegriff oder Text enthält Zugangsdaten");return;}
         File folder=new File(getFilesDir(),"drafts");if(!folder.exists()&&!folder.mkdirs())throw new java.io.IOException();
         Art.save(idea,new File(folder,id+".png"));
         String status=verified?"Entwurf bereit · Post-Link bestätigt · Pump.fun fehlt":"Lokaler Entwurf · X-Mitteilung nicht per Link verifiziert · keine Veröffentlichung";

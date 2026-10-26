@@ -36,7 +36,7 @@ def test_each_topic_has_its_own_illustration():
     assert len(images) == len(TemplateIdeas.THEMES)
 
 
-@pytest.mark.parametrize("text", ["See https://example.org/rocket", "Hello @doge", "People killed in a rocket"])
+@pytest.mark.parametrize("text", ["See https://example.org/rocket", "Hello @doge", "Private key: rocket"])
 async def test_links_handles_and_sensitive_news_are_not_meme_evidence(post, text):
     assert await TemplateIdeas().generate(replace(post, text=text)) is None
 

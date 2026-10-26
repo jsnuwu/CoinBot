@@ -115,10 +115,67 @@ def render(idea: Idea) -> bytes:
         d.polygon([(384, 167), (443, 125), (598, 180), (543, 238)], fill=accent)
         eyes(350)
         d.ellipse((366, 390, 402, 431), fill=ink)
+    elif theme == "news":
+        d.rounded_rectangle((195, 160, 573, 475), radius=16, fill=cream)
+        d.rectangle((220, 185, 548, 235), fill=accent)
+        for y in range(270, 440, 38):
+            d.rectangle((225, y, 375, y + 9), fill=ink)
+            d.rectangle((408, y, 540, y + 9), fill=ink)
+    elif theme == "politics":
+        d.polygon([(180, 245), (384, 130), (588, 245)], fill=cream)
+        d.rectangle((180, 450, 588, 485), fill=accent)
+        for x in range(240, 511, 90):
+            d.rectangle((x, 260, x + 30, 448), fill=cream)
+    elif theme == "finance":
+        for x, y, color in ((210, 350, accent), (330, 270, cream), (450, 180, gold)):
+            d.rounded_rectangle((x, y, x + 80, 475), radius=8, fill=color)
+        d.rectangle((190, 490, 565, 500), fill=cream)
+    elif theme == "sports":
+        d.ellipse((214, 150, 554, 490), fill=cream)
+        d.ellipse((329, 265, 439, 375), fill=ink)
+        for x, y in ((384, 195), (503, 281), (458, 421), (310, 421), (265, 281)):
+            d.ellipse((x - 24, y - 24, x + 24, y + 24), fill=ink)
+    elif theme == "transport":
+        d.rounded_rectangle((230, 140, 538, 465), radius=45, fill=accent)
+        d.rounded_rectangle((265, 190, 503, 315), radius=12, fill=(100, 201, 244))
+        for x in (295, 473):
+            d.ellipse((x - 22, 363, x + 22, 407), fill=gold)
+        for x in (255, 483):
+            d.rectangle((x, 475, x + 30, 525), fill=cream)
+    elif theme == "science":
+        d.ellipse((205, 255, 563, 385), outline=accent, width=12)
+        d.ellipse((310, 140, 458, 500), outline=cream, width=12)
+        d.line((245, 200, 523, 440), fill=accent, width=10)
+        d.ellipse((348, 284, 420, 356), fill=gold)
+    elif theme == "weather":
+        d.ellipse((205, 145, 375, 315), fill=gold)
+        for x, y, size in ((340, 330, 86), (435, 290, 100), (515, 345, 70)):
+            d.ellipse((x - size, y - size, x + size, y + size), fill=cream)
+        d.rounded_rectangle((265, 330, 545, 410), radius=18, fill=cream)
+        for x in range(300, 530, 75):
+            d.rounded_rectangle((x, 440, x + 12, 495), radius=6, fill=(100, 201, 244))
+    elif theme == "health":
+        d.ellipse((214, 150, 554, 490), fill=accent)
+        d.rectangle((350, 200, 418, 440), fill=cream)
+        d.rectangle((265, 285, 503, 355), fill=cream)
+    elif theme == "technology":
+        d.rounded_rectangle((260, 195, 508, 445), radius=20, fill=accent)
+        d.rounded_rectangle((290, 225, 478, 415), radius=10, fill=ink)
+        for x in range(285, 500, 50):
+            d.rectangle((x, 155, x + 15, 195), fill=cream)
+            d.rectangle((x, 445, x + 15, 485), fill=cream)
+        for y in range(235, 420, 50):
+            d.rectangle((220, y, 260, y + 15), fill=cream)
+            d.rectangle((508, y, 548, y + 15), fill=cream)
     else:
         d.ellipse((200, 130, 568, 510), fill=accent)
         eyes()
         smile(340)
+
+    if theme in {"news", "politics", "finance", "sports", "transport", "science", "weather", "health", "technology"}:
+        subject = idea.name.split()[0]
+        headline = ImageFont.load_default(size=34)
+        d.text((384, 520), subject, anchor="mt", font=headline, fill=cream)
 
     size = 58
     font = ImageFont.load_default(size=size)

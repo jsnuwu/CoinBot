@@ -1,4 +1,4 @@
-# CoinBot Android 0.2 – Benachrichtigungsempfang und lokale Entwürfe
+# CoinBot Android 0.3 – Benachrichtigungsempfang und lokale Entwürfe
 
 Diese App ersetzt den öffentlichen X-Timeline-Poller durch Benachrichtigungen der eigenen X-App.
 Sie benötigt keinen Server und keinen API-Key. Verarbeitung und Entwürfe bleiben auf dem Handy.
@@ -31,7 +31,8 @@ Unverwertbare Benachrichtigungstexte werden nicht gespeichert und nicht an einen
 - Einbettung über `publish.x.com/oembed` liefert dieselbe Post-ID und einen passenden Absender.
   Der Einbettungsdienst kann ebenfalls begrenzen oder ausfallen; keine Zusage seiner Verfügbarkeit.
 - Vollständiger Text: keine automatische Vorbereitung aus einer erkennbar gekürzten Antwort.
-- Passendes lokales Motiv, sensible Inhalte ausgeschlossen. PNG wird direkt auf dem Gerät gezeichnet.
+- Allgemeine Themen aus Nachrichten, Politik, Wirtschaft, Technik, Wissenschaft, Sport, Verkehr,
+  Wetter und Gesundheit. Zugangsdaten bleiben ausgeschlossen. PNG wird direkt auf dem Gerät gezeichnet.
 - SQLite verhindert doppelte Verarbeitung derselben Post-ID über App-Neustarts hinweg.
 - Maximal 20 vorbereitete Entwürfe pro Tag mit 60 Sekunden Abstand; Entwürfe älter als 30 Tage
   werden lokal gelöscht. Eine Zugriffssperre von X löst 15 Minuten Wartezeit aus, keine Umgehung.
@@ -95,5 +96,35 @@ Entwürfe und Bilder werden nicht gelöscht. Die hier bereitgestellte lokale Upd
 vorherige lokale APK auf gleichen Signierer geprüft; bei dieser Datei ist keine Deinstallation nötig.
 CI-APKs mit frisch erzeugtem Test-Schlüssel sind davon getrennt (siehe Hinweis zum Signieren oben).
 
-Build und **40 reine Core-Prüfungen** sind getestet. Der vollständige Empfangsablauf und die neue
+Für Version 0.2 wurden 40 reine Core-Prüfungen ausgeführt. Der vollständige Empfangsablauf und die neue
 Titelzuordnung müssen weiterhin auf dem Handy mit einer echten X-Benachrichtigung geprüft werden.
+
+## Änderungen in 0.3: allgemeine Post-Themen
+
+Die Benutzerdiagnose aus 0.2 zeigte empfangene Meldungen und passende Absender, aber zwei Ablehnungen
+am Themenfilter. Die feste Liste mit zehn Motiven war zu eng. Version 0.3 behält bekannte Motive,
+verwendet aber zusätzlich eine offene Begriffsableitung für sonstige deutsch-/englischsprachige Texte.
+Nachrichten, Politik, Sport, Verkehr, Gesundheit, Wirtschaft, Wissenschaft, Technik oder Wetter
+brauchen kein vorher bekanntes Meme-Schlüsselwort mehr. Neun redaktionelle Bildmotive und der
+abgeleitete Themenbegriff bestimmen das neue Bild. Länder, Orte und einige häufige Organisationen
+haben Vorrang; sie sind keine Zugangsliste, andere Begriffe bleiben möglich.
+
+Ein vom Nutzer gelieferter unbestätigter Text über Iran/Israel und Wahlen wurde in beiden
+Implementierungen als Politik erkannt (`Iran Brief`, Ticker mit individuellem Suffix). Der Test
+bestätigt die Themenverarbeitung, nicht die Tatsachenbehauptungen des Posts. Sachliche Berichte über
+Konflikte werden neutral illustriert statt pauschal wegen Wörtern wie „war“ oder „Krieg“ verworfen.
+Leere Texte, bloße URLs/Erwähnungen, Zugangsdaten und Texte ohne brauchbaren Begriff bleiben ausgeschlossen.
+
+Das bleibt eine kostenlose lokale Heuristik, kein Sprachmodell und keine Vorhersage von Interesse
+oder Kursen. Falsche Schwerpunkte und Kategorisierungen sind möglich. Die Suche nach allen aktuellen
+X-Trends ist nicht enthalten. Unbestätigte Mitteilungen bleiben `notification_unverified` und dürfen
+weiterhin nicht automatisch veröffentlicht werden. Die Pump-Kontoverbindung ist weiterhin offen.
+
+Version 0.3 hat Datenbankschema 3. Einstellungen, Bilder und fertige Entwürfe bleiben erhalten. Noch
+sichtbare frische Mitteilungen, die ausschließlich vom alten Themenfilter abgelehnt wurden, dürfen
+mit der neuen Themenlogik einmal erneut geprüft werden. Bereits fertige Entwürfe und Quellenfehler
+werden dadurch nicht blind erneut ausgeführt. Die Fünf-Minuten-Grenze bleibt gültig.
+
+**99 Android-Core-Prüfungen**, APK-Build und Signaturprüfung bestehen. Die 14 allgemeinen Themenfälle
+werden gemeinsam von Python und Java geprüft (`topic-cases.tsv`). Die Update-Datei wird mit demselben
+lokalen Schlüssel wie zuvor signiert. Ein echter Gerätetest der Version 0.3 steht noch aus.

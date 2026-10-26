@@ -3,6 +3,8 @@
 - Dieses Repository ist unabhängig von TradeBot. Keine Wallets, Secrets, Datenbanken oder Deploys teilen.
 - Nutzerziel: vollautomatische Launches nach festen Regeln, keine Telegram-Freigabe pro Coin.
 - Keine manuelle Coin-/Vorschlagserstellung in der Website oder über deren API anbieten.
+- Themenauswahl ist nicht auf klassische Memes begrenzt: allgemeine Nachrichten-/Post-Themen lokal
+  ableiten, ohne daraus Viralitäts- oder Gewinnwahrscheinlichkeiten zu behaupten.
 - Android-Empfangstest unter `android/`: ausschließlich eigene X-Benachrichtigungen, lokale Verarbeitung,
   keine versteckten Konto-/Wallet-Zugriffe. APK-Build und JVM-Tests ersetzen keinen echten Gerätetest.
 - Benachrichtigungsentwürfe ohne bestätigten Link haben `notification_unverified` / `publishable=false`.

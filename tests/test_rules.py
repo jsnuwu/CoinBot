@@ -57,7 +57,7 @@ async def test_preview_no_network_and_durable_dedup(cfg, store, post):
 @pytest.mark.parametrize("change,reason", [
     ({"author_id": "999"}, "author_not_allowed"),
     ({"original": False}, "reply_repost_quote_or_edit"),
-    ({"text": "People killed near a rocket"}, "sensitive_content"),
+    ({"text": "Private key: rocket"}, "sensitive_content"),
     ({"text": ""}, "empty_post"),
 ])
 async def test_ineligible_posts(cfg, store, post, change, reason):
@@ -78,7 +78,7 @@ async def test_future_post(cfg, store, post):
 
 async def test_low_relevance_and_kill_switch(cfg, store, post):
     pipeline = Pipeline(cfg, store, TemplateIdeas(), started_at=post.created_at)
-    assert (await pipeline.process(replace(post, text="Meeting at noon")))["reason"] == "insufficient_meme_relevance"
+    assert (await pipeline.process(replace(post, text="ok thanks")))["reason"] == "insufficient_meme_relevance"
     (store.root / "STOP").touch()
     assert (await pipeline.process(replace(post, id="101", root_id="101")))["reason"] == "kill_switch"
 

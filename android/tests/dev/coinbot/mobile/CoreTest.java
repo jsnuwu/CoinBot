@@ -29,10 +29,11 @@ public final class CoreTest {
         check(rocket!=null&&rocket.theme.equals("space")&&rocket.ticker.length()<=10,"match topic and ticker limit");
         check(Core.idea("Coffee on the moon",fresh).theme.equals("coffee"),"first mentioned subject wins tie");
         check(Core.idea("Coffee coffee! Starship rocket to Mars",fresh).theme.equals("space"),"distinct subjects outweigh repetition");
-        check(Core.idea("People killed near a rocket",fresh)==null,"reject sensitive news");
+        check(Core.idea("People killed near a rocket",fresh).theme.equals("news"),"neutral news illustration instead of rejecting a news topic");
+        check(Core.idea("private key: rocket",fresh)==null,"do not turn access credentials into metadata");
         check(Core.idea("Read https://example.test/rocket",fresh)==null,"URL alone is not topic evidence");
         check(Core.idea("Hello @doge",fresh)==null,"mention alone is not topic evidence");
-        check(Core.idea("Meeting at noon",fresh)==null,"do not fabricate a meme topic");
+        check(Core.idea("ok thanks",fresh)==null,"do not fabricate a topic from filler");
         check(Core.idea("Starship to Mars",fresh).ticker.equals(rocket.ticker),"repeat input stable");
         check(Core.metadataLink("tweet_"+fresh).endsWith(fresh),"read explicit tweet notification tag");
         check(Core.metadataLink(fresh).contains("/i/web/status/"),"read structured post ID");
@@ -45,6 +46,8 @@ public final class CoreTest {
         check(Core.notificationAuthor("Mario Nawfal @unselected",mario)==null,"explicit different handle overrides display-name match");
         check(Core.notificationAuthor("@MarioNawfal and @elonmusk",mario)==null,"ambiguous author stays rejected");
         check(Core.notificationAuthor("Elon Musk replied",mario)==null,"do not mistake reply title for an author");
+        check("nytimes".equals(Core.notificationAuthor("The New York Times",Core.accounts("nytimes"))),"selected news profile display alias remains local-only");
+        check("vitalikbuterin".equals(Core.notificationAuthor("vitalik.eth",Core.accounts("VitalikButerin"))),"selected account display alias");
         Core.NotificationDraft local=Core.notificationDraft("Mario Nawfal","A robot on Mars",mario);
         check(local!=null&&!local.publishable&&local.id.startsWith("notification_"),"notification-only evidence can never authorize publication");
         check(Core.notificationDraft("Mario Nawfal","A robot on Mars…",mario)==null,"truncated notification does not create draft");
@@ -52,7 +55,20 @@ public final class CoreTest {
         check(local.id.equals(Core.notificationDraft("Mario Nawfal","A robot on Mars",mario).id),"repeated notification deduplicates independently of updates");
         check(!local.id.equals(Core.notificationDraft("Elon Musk","A robot on Mars",mario).id),"separate selected authors have separate local drafts");
         check(Core.idea(local.text,local.id)!=null,"valid received text reaches local idea generation without X network requests");
+        try{
+            for(String row:java.nio.file.Files.readAllLines(java.nio.file.Paths.get("topic-cases.tsv"),java.nio.charset.StandardCharsets.UTF_8)){
+                if(row.startsWith("# ")||row.trim().isEmpty())continue;
+                String[] cells=row.split("\\t");IdeaCheck(cells,fresh);
+            }
+        }catch(java.io.IOException e){throw new AssertionError(e);}
         try{Core.accounts("elonmusk,https://evil.test");throw new AssertionError("invalid account accepted");}catch(IllegalArgumentException expected){checks++;}
         System.out.println(checks+" Android core checks passed");
+    }
+    private static void IdeaCheck(String[] cells,String id){
+        Core.Idea idea=Core.idea(cells[0],id);
+        check(idea!=null,"general post must not require old meme keyword: "+cells[0]);
+        check(idea.theme.equals(cells[1]),"category matches post content: "+cells[0]);
+        check(idea.name.startsWith(cells[2]+" "),"name is anchored in an actual post term: "+cells[0]);
+        check(idea.ticker.length()<=10&&idea.name.length()<=25,"Pump field limits");
     }
 }
