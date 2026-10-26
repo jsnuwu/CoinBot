@@ -1,4 +1,4 @@
-# CoinBot Android 0.3.1 – Benachrichtigungsempfang und lokale Entwürfe
+# CoinBot Android 0.3.2 – Benachrichtigungsempfang und lokale Entwürfe
 
 Diese App ersetzt den öffentlichen X-Timeline-Poller durch Benachrichtigungen der eigenen X-App.
 Sie benötigt keinen Server und keinen API-Key. Verarbeitung und Entwürfe bleiben auf dem Handy.
@@ -152,3 +152,38 @@ lokalen Bilddateinamen sind noch keine hochgeladenen Bild-URIs.
 **137 Python-Tests und 117 Android-Core-Prüfungen**, Ruff, Offline-Demo, APK-Build und Signaturprüfung
 bestehen. Die lokale APK verwendet denselben Signierer wie 0.3.0; Datenbankschema und Namenseingabe
 bleiben unverändert. Kein echter Handy-/Pump.fun-End-to-End-Test dieser Änderung.
+
+## Änderungen in 0.3.2: fehlende Tweet-Links untersuchen
+
+Der Benutzerbericht zu 0.3.1 enthielt 33 empfangene Meldungen, sechs unverifizierte Entwürfe und
+keinen per Link bestätigten Entwurf. Das zeigt keine erfolgreiche Quellenlink-Erfassung. Die
+Metadaten-Übernahme in 0.3.1 konnte fehlende Post-IDs nicht beschaffen.
+
+Der Reader berücksichtigt jetzt auch verschachtelte Bundles, Arrays/Listen, freigegebene
+Intent-Daten-URIs und die Extras von Benachrichtigungsaktionen. Explizite `post_id`-Felder und
+`twitter://status?status_id=…` werden erkannt. Fremde Account-/Benachrichtigungs-IDs werden nicht
+als Post-IDs behandelt. Traversierung, Tiefe und Datenmenge sind begrenzt; ein unvollständiger
+Scan bestätigt keinen Link. Sammelmeldungen und Nachrichtenformate werden weiterhin vorher
+ignoriert. Die Namenseingabe bleibt unverändert.
+
+`Letzte Linkpruefung` zeigt nur Feldtypzähler, die Scanbegrenzung und ob ein X-Öffnungsziel
+vorliegt. Sie enthält keine Rohtexte, Links, IDs oder Schlüssel. Das Öffnungsziel ist häufig
+ein Android-`PendingIntent`: X kann damit den Post öffnen, CoinBot kann dessen Ziel aber nicht
+über eine öffentliche Android-Schnittstelle auslesen. Es wird weder reflektiert noch automatisch
+ausgeführt. Ohne auslesbare Post-ID/URL bleibt der Link weiterhin unbekannt.
+
+Das Entwurfsfenster ist scrollbar. Vorhandene Post-URLs lassen sich öffnen oder kopieren;
+unbestätigte URLs sind als solche beschriftet. Bei fehlender URL erklärt der Entwurf den Grund.
+Bestehende Entwürfe ohne Quellenlink werden durch das Update nicht nachträglich verifiziert.
+
+Ein ergänzender Lesetest der öffentlichen X-Timeline am 26.10.2026 lieferte bei MarioNawfal HTTP 429
+und bei Musk nur Posts bis 21.10.2026. Diese Quelle ist daher kein verlässlicher kostenloser Ersatz
+für die fehlenden Links und wird nicht als automatischer Android-Fallback hinzugefügt. Keine
+bezahlte X-API, kein Server, keine Anmeldung oder Zugriffsumgehung wurde ergänzt.
+
+Verifiziert: **137 Python-Tests, 126 Core-Prüfungen und 15 Prüfungen mit synthetischen Android-
+Metadaten**, Ruff, Offline-Demo, APK-Build und Signaturprüfung. Die Testobjekte sind ausschließlich
+JVM-Fixtures, nicht Bestandteil der APK und kein Nachweis über tatsächlich von X gelieferte Daten.
+Die lokale Update-APK verwendet denselben Signierer wie 0.3.1; Einstellungen und Daten bleiben
+erhalten. Auf dem echten Handy muss eine neue X-Mitteilung geprüft und die neue Linkdiagnose
+angesehen werden. Die Pump-Anmeldung ist weiterhin nicht implementiert.

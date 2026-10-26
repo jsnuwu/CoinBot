@@ -38,6 +38,11 @@ public final class CoreTest {
         check(Core.metadataLink("tweet_"+fresh).endsWith(fresh),"read explicit tweet notification tag");
         check(Core.metadataLink(fresh).contains("/i/web/status/"),"read structured post ID");
         check(Core.metadataLink("user_"+fresh).isEmpty(),"do not turn user IDs into posts");
+        check(Core.metadataLink(fresh).equals(Core.appPostLink("twitter://status?status_id="+fresh)),"read X app deep link without text permalink");
+        check(Core.metadataLink(fresh).equals(Core.appPostLink("twitter://status?id="+fresh+"&referrer=notification")),"native post ID query can include unrelated parameters");
+        for(String invalid:new String[]{"twitter://user?user_id="+fresh,"twitter://status?status_id="+fresh+"&id=1234567890123456789","twitter://status.evil.test?status_id="+fresh,"https://evil.test/?status_id="+fresh,"twitter://status?status_id=not-a-number"})check(Core.appPostLink(invalid).isEmpty(),"reject ambiguous, wrong-target and invalid app post links");
+        check(Core.postIdKey("post_id")&&Core.postIdKey("tweetId")&&Core.postIdKey("status_id"),"explicit structured post ID field aliases");
+        check(!Core.postIdKey("user_id")&&!Core.postIdKey("notification_id")&&!Core.postIdKey("id"),"do not guess post IDs from unrelated identifier fields");
         Set<String> mario=Core.accounts("MarioNawfal,elonmusk,realDonaldTrump");
         check("marionawfal".equals(Core.notificationAuthor("Mario Nawfal",mario)),"recognize selected notification display name locally");
         check("marionawfal".equals(Core.notificationAuthor("Mario Nawfal (@MarioNawfal)",mario)),"recognize explicit selected handle");

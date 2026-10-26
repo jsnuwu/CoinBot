@@ -39,18 +39,9 @@ public final class XListener extends NotificationListenerService {
         String title=field(extras,Notification.EXTRA_TITLE_BIG);if(title.isEmpty())title=field(extras,Notification.EXTRA_TITLE);
         String body=field(extras,Notification.EXTRA_BIG_TEXT);if(body.isEmpty())body=field(extras,Notification.EXTRA_TEXT);
         Core.NotificationDraft local=Core.notificationDraft(title,body,allowed);
-        StringBuilder visible=new StringBuilder();
-        visible.append(Core.metadataLink(event.getTag())).append('\n');visible.append(Core.metadataLink(n.getShortcutId())).append('\n');
-        for(String key:extras.keySet()){
-            Object value;try{value=extras.get(key);}catch(RuntimeException e){continue;}
-            if(value instanceof CharSequence)visible.append(value).append('\n');
-            else if(value instanceof CharSequence[])for(CharSequence line:(CharSequence[])value)visible.append(line).append('\n');
-            else if(value instanceof android.net.Uri)visible.append(value.toString()).append('\n');
-            String normalizedKey=key.replace("_","").toLowerCase(Locale.ROOT);
-            if(normalizedKey.equals("tweetid")||normalizedKey.equals("statusid"))visible.append(Core.metadataLink(String.valueOf(value))).append('\n');
-            if(visible.length()>16000)break;
-        }
-        Core.Candidate candidate=Core.candidate(visible.toString(),allowed);
+        NotificationLinks links=new NotificationLinks(n,event.getTag());
+        Core.Candidate candidate=links.candidate(allowed);
+        Diagnostics.links(this,links.summary(candidate!=null));
         if(candidate==null){
             note("no_link","Keine eindeutige Post-ID oder URL in X-Mitteilung; lokaler Entwurf ohne Quellenlink");
             if(local==null){

@@ -137,6 +137,28 @@ public final class Core {
         Matcher m=Pattern.compile("^(?:(?:tweet|status)[_:/-]?)?([0-9]{15,19})$").matcher(value);
         return m.matches()?"https://x.com/i/web/status/"+m.group(1):"";
     }
+    /** X app deep links are metadata, not URLs which need to be present in a post's text. */
+    public static String appPostLink(String value){
+        if(value==null)return "";
+        try{
+            URI uri=new URI(value);
+            if(!"twitter".equals(uri.getScheme())||!"status".equals(uri.getHost())||uri.getUserInfo()!=null||uri.getPort()!=-1)return "";
+            if(uri.getPath()!=null&&!uri.getPath().isEmpty()&&!"/".equals(uri.getPath()))return "";
+            String query=uri.getRawQuery();if(query==null)return "";
+            String result="";
+            for(String part:query.split("&")){
+                String[] pair=part.split("=",2);
+                if(pair.length!=2||!(pair[0].equals("status_id")||pair[0].equals("tweet_id")||pair[0].equals("id")))continue;
+                String next=metadataLink(pair[1]);
+                if(next.isEmpty()||!result.isEmpty()&&!result.equals(next))return "";
+                result=next;
+            }
+            return result;
+        }catch(Exception e){return "";}
+    }
+    public static boolean postIdKey(String key){
+        return key!=null&&key.replace("_","").toLowerCase(Locale.ROOT).matches("tweetid|statusid|postid");
+    }
     /** Exact post permalink, never a profile or a guessed text-search result. */
     public static String postUrl(String value){
         if(value==null)return "";

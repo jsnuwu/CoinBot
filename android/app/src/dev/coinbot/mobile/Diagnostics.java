@@ -15,7 +15,7 @@ final class Diagnostics {
     static String text(Context context,boolean access){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         long when=p.getLong("last_event_time",0);
-        return "CoinBot 0.3.1\nZugriff: "+(access?"erteilt":"fehlt")+
+        return "CoinBot 0.3.2\nZugriff: "+(access?"erteilt":"fehlt")+
             "\nDienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
             "\nBeobachtung: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
             "\nAccounts: "+p.getString("accounts","realDonaldTrump,elonmusk")+
@@ -23,6 +23,7 @@ final class Diagnostics {
             "\nSammelmeldungen ignoriert: "+p.getLong("diag_summary",0)+
             "\nNachrichtenformat ignoriert: "+p.getLong("diag_private",0)+
             "\nOhne passenden Link: "+p.getLong("diag_no_link",0)+
+            "\nLetzte Linkpruefung: "+p.getString("last_link_scan","Seit Update noch keine X-Mitteilung geprüft")+
             "\nAbsender nicht zugeordnet: "+p.getLong("diag_unknown_author",0)+
             "\nText fehlt/gekuerzt: "+p.getLong("diag_incomplete",0)+
             "\nKein passendes Thema: "+p.getLong("diag_no_topic",0)+
@@ -34,4 +35,5 @@ final class Diagnostics {
             (when>0?"\nZeit: "+DateFormat.getDateTimeInstance().format(new Date(when)):"")+
             "\nPump.fun: nicht verbunden; keine Veroeffentlichungen";
     }
+    static void links(Context context,String summary){context.getSharedPreferences("settings",0).edit().putString("last_link_scan",summary).apply();}
 }

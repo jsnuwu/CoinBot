@@ -16,7 +16,7 @@ Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
 ## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
 
-Unter [`android/`](android/README.md) liegt die Android-App 0.3.1 (Android 8+). Sie verarbeitet
+Unter [`android/`](android/README.md) liegt die Android-App 0.3.2 (Android 8+). Sie verarbeitet
 Benachrichtigungen der eigenen X-App und bereitet passende Entwürfe direkt auf dem Handy vor.
 Der erste Benutzerbericht bestätigte empfangene X-Meldungen, aber keinen verwertbaren Post-Link.
 Version 0.2 kann deshalb vollständige Mitteilungstexte mit zugeordnetem Titel auch ohne Link
@@ -28,8 +28,13 @@ seinen eigenen Link nicht enthalten. Version 0.3.1 schreibt den Quellenlink in `
 `source_post` der Metadaten und zeigt ihn am Entwurf. Fehlen ID und URL in den Mitteilungsdaten,
 bleiben diese Felder aus; Text und Anzeigename allein erlauben keine zuverlässige Link-Zuordnung.
 
-APK-Build, Signaturprüfung und 117 reine Java-Prüfungen bestehen. Version 0.3.1 wurde noch nicht auf
-dem Handy getestet; die neue Titelzuordnung und der vollständige Ablauf müssen dort geprüft werden.
+Version 0.3.2 liest zusätzlich verschachtelte Android-Metadaten und X-App-Postlinks. Die Diagnose
+meldet die erkannten Feldtypen und ein vorhandenes, aber nicht auslesbares X-Öffnungsziel ohne Rohdaten.
+Sie garantiert keine Links: X kann den Post ausschließlich in einem undurchsichtigen `PendingIntent`
+referenzieren. Es gibt keinen automatischen Ersatz durch geratenen Textabgleich oder Profil-Links.
+
+APK-Build, Signaturprüfung, 126 Core- und 15 Metadatenprüfungen mit JVM-Testobjekten bestehen.
+Version 0.3.2 wurde noch nicht auf dem Handy getestet; der vollständige Ablauf muss dort geprüft werden.
 Die App zeigt Empfangszähler, Dienstverbindung und Filtergründe; `Diagnose kopieren` enthält keine
 Nachrichtentexte oder Sitzungsschlüssel. Einstellungen und vorhandene Entwürfe bleiben bei der
 lokalen, mit demselben Schlüssel signierten Update-APK erhalten. Keine manuelle Coin-Erstellung,
