@@ -10,8 +10,8 @@
 <body>
   <main>
     <header><a class="brand" href="/">CoinBot<span>FREE PREVIEW</span></a><span class="badge">Pump.fun-Launch deaktiviert</span></header>
-    <section class="intro"><p class="eyebrow">VOM POST ZUR MEME-IDEE</p><h1>Ideen finden.<br>Ohne API-Rechnung.</h1>
-      <p>Öffentliche X-Posts prüfen, Meme-Vorschläge vorbereiten und Bilder herunterladen.
+    <section class="intro"><p class="eyebrow">VOM POST ZUR MEME-IDEE</p><h1>X beobachten.<br>Automatisch vorbereiten.</h1>
+      <p>Neue öffentliche X-Posts werden automatisch auf passende Meme-Themen geprüft. Daraus entstehen Name, Ticker und Bild.
       Die Erstellung nutzt lokale Vorlagen. Hier wird kein echter Coin veröffentlicht.</p>
     </section>
     <section class="notice" aria-label="Betriebsgrenzen"><strong>Was kostenlos funktioniert</strong>
@@ -26,12 +26,9 @@
         <p id="feed-error" role="status"></p><div id="posts" class="list"></div>
         <p class="muted small">Alte Posts sind zur Ansicht da. Automatische Vorschläge entstehen nur aus neuen, passenden Originalposts nach dem Start.</p>
       </section>
-      <section class="panel"><h2>Post selbst ausprobieren</h2><p class="muted">Text einfügen oder links einen gelieferten X-Post übernehmen.</p>
-        <form id="preview-form">
-          <label for="post-text">Post-Text</label><textarea id="post-text" maxlength="4000" rows="6" required placeholder="Zum Beispiel: Coffee on the moon!"></textarea>
-          <label for="post-url">X-Link <span class="muted">(optional)</span></label><input id="post-url" type="url" placeholder="https://x.com/name/status/…">
-          <div class="actions"><button id="generate" type="submit">Vorschlag erstellen</button><button id="demo" class="secondary" type="button">Beispieltext einsetzen</button></div>
-        </form><p id="form-status" role="status" aria-live="polite"></p>
+      <section class="panel"><h2>Automatisch vorbereiteter Entwurf</h2>
+        <p id="result-placeholder" class="muted">Hier erscheint ein automatisch vorbereiteter Entwurf, sobald ein neuer Post die Auswahlregeln erfüllt. Der Pump.fun-Launch ist noch deaktiviert.</p>
+        <p id="result-status" role="status" aria-live="polite"></p>
         <article id="result" hidden><img id="meme" alt="Generiertes Cartoon-Meme mit Ticker und Kennzeichnung als inoffizielles Community-Meme">
           <h3 id="coin-name"></h3><p id="coin-description"></p><p id="origin" class="muted small"></p>
           <div class="actions"><a id="download-image" class="button" download="meme.png">PNG speichern</a><button id="download-json" class="secondary" type="button">Metadaten speichern</button></div>

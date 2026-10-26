@@ -11,9 +11,9 @@ function showResult(data) {
   el('download-image').href = el('meme').src;
   el('coin-name').textContent = `${data.metadata.name} · $${data.metadata.symbol}`;
   el('coin-description').textContent = data.metadata.description;
-  el('origin').textContent = data.origin === 'user_supplied_text'
-    ? 'Vorschlag aus eingegebenem Text. Der Text wurde nicht mit X abgeglichen. Kein Token veröffentlicht.'
-    : 'Vorschlag aus der experimentellen öffentlichen X-Ansicht. Kein Token veröffentlicht.';
+  el('origin').textContent = 'Automatisch aus einer öffentlichen X-Ansicht vorbereitet. Kein Token veröffentlicht.';
+  el('result-placeholder').hidden = true;
+  el('result-status').textContent = '';
   el('result').hidden = false;
 }
 async function loadStatus() {
@@ -42,9 +42,7 @@ async function loadStatus() {
       const article = document.createElement('article');
       const link = document.createElement('a'); link.href = post.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
       link.textContent = `@${post.handle} · ${date(post.created_at)}`;
-      const button = document.createElement('button'); button.className = 'secondary'; button.textContent = 'Text übernehmen';
-      button.onclick = () => {el('post-text').value = post.text; el('post-url').value = post.url; el('post-text').focus();};
-      article.append(link, paragraph(post.text), button); el('posts').append(article);
+      article.append(link, paragraph(post.text)); el('posts').append(article);
     }
     if (!monitor.recent_posts?.length) el('posts').append(paragraph('Noch keine Posts geliefert. Der Status oben zeigt, ob die Abfrage läuft.', 'muted'));
     el('previews').replaceChildren();
@@ -57,7 +55,7 @@ async function loadStatus() {
           const response = await fetch('/api/previews/' + encodeURIComponent(preview.root_id));
           if (!response.ok) throw new Error();
           showResult(await response.json()); el('result').scrollIntoView({behavior:'auto',block:'center'});
-        } catch {el('form-status').textContent = 'Vorschlag nicht mehr verfügbar. Der Serverspeicher ist temporär.';}
+        } catch {el('result-status').textContent = 'Vorschlag nicht mehr verfügbar. Der Serverspeicher ist temporär.';}
       };
       article.append(paragraph(`${idea.name} · $${idea.symbol}`), button); el('previews').append(article);
     }
@@ -70,19 +68,6 @@ async function loadStatus() {
     if (!document.hidden) refreshTimer = setTimeout(loadStatus, 15000);
   }
 }
-el('preview-form').addEventListener('submit', async event => {
-  event.preventDefault(); el('generate').disabled = true; el('form-status').textContent = 'Erstelle lokalen Vorschlag …';
-  el('result').hidden = true; current = null;
-  try {
-    const response = await fetch('/api/preview', {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:el('post-text').value.trim(),url:el('post-url').value.trim()})});
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Vorschlag konnte nicht erstellt werden.');
-    showResult(data); el('form-status').textContent = 'Vorschlag fertig. Keine API-Gebühr, kein Blockchain-Launch.';
-  } catch (error) {el('form-status').textContent = error.message || 'Verbindung fehlgeschlagen.';}
-  finally {el('generate').disabled = false;}
-});
-el('demo').onclick = () => {el('post-text').value = 'Coffee on the moon!';el('post-url').value = '';el('post-text').focus();};
 el('download-json').onclick = () => {
   if (!current) return;
   const url = URL.createObjectURL(new Blob([JSON.stringify(current.metadata,null,2)], {type:'application/json'}));

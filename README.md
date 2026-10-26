@@ -39,10 +39,10 @@ XPUMP_FREE_HOSTING=true XPUMP_PUBLIC_X_ACCOUNTS=realDonaldTrump:25073877,elonmus
 ```
 
 Danach `http://localhost:8000` öffnen. Optional `PORT` setzen. Ohne `XPUMP_PUBLIC_X_ACCOUNTS` bleibt
-die Beobachtung aus; das manuelle Erstellen von Vorschlägen funktioniert trotzdem ohne Netzwerkzugriff.
+die Beobachtung aus. Die Website enthält keine Eingabefelder und keinen Endpunkt zum manuellen Erstellen von Vorschlägen.
 Die automatische Beobachtung prüft standardmäßig alle 120 Sekunden. Die Website zeigt Prüfzeit,
-gelieferte Post-Zeit und Quellenfehler getrennt an. Eingefügter Text wird ausdrücklich als Nutzereingabe
-gekennzeichnet und nicht als von X verifiziert ausgegeben. PNG und Metadaten lassen sich herunterladen.
+gelieferte Post-Zeit und Quellenfehler getrennt an. Die Website zeigt ausschließlich automatisch verarbeitete Posts und daraus entstandene Entwürfe.
+PNG und Metadaten bereits vorbereiteter Entwürfe lassen sich herunterladen.
 
 ### Kostenloser X-Zugriff: experimentell
 
@@ -68,8 +68,7 @@ Innerhalb eines Accounts bekommen die neuesten Posts zuerst Zugriff auf das Vors
 Voreinstellung im Render-Blueprint: `@realDonaldTrump` und `@elonmusk`, jeweils mit festgelegter
 numerischer Account-ID, Abfrage alle 60 Sekunden und höchstens fünf Minuten Post-Alter. Maximal
 20 automatische Vorschläge je 24 Stunden, 60 Sekunden Mindestabstand und 200 Kandidatenprüfungen
-pro Tag; diese höheren Grenzen gelten für die kostenlosen Vorschläge, nicht als neue Geldfreigabe. Manuelle Vorschläge sind
-getrennt auf 20 Anfragen pro Minute begrenzt. Zehn lokale Cartoon-Motive erzeugen thematisch passende Bilder;
+pro Tag; diese höheren Grenzen gelten für die kostenlosen Vorschläge, nicht als neue Geldfreigabe. Zehn lokale Cartoon-Motive erzeugen thematisch passende Bilder;
 der Vorlagenmodus ist keine KI und der Relevanzwert keine Gewinnwahrscheinlichkeit.
 
 ## Zusätzlich vorhandene CLI-Launch-Pipeline (nicht Teil des Gratisbetriebs)
@@ -286,9 +285,9 @@ Budgetgrenzen, Neustarts/Deduplizierung, Kandidatenfilter, falsche Transaktionsd
 Transfers/Käufe, Prioritätsgebühren, Simulation, Sendetimeouts und Finalisierung. GitHub Actions führt
 Tests, Linter und Offline-Demo aus.
 
-Lokal verifiziert: **115 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
+Lokal verifiziert: **110 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
 inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Der Blueprint wurde gegen das offizielle Render-Schema
-validiert; manuelle Vorschläge ohne Netzwerkzugriff, experimenteller X-Reader und Web-Endpunkte getestet.
+validiert; ausschließlich lesende Web-Endpunkte, abgeschaltete manuelle Erstellung und experimenteller X-Reader getestet.
 Die öffentliche X-Ansicht wurde außerdem separat ohne API-Key gelesen (20 gelieferte Posts).
 Desktop-/Mobilansicht, PNG-Vorschau und JSON-Download wurden im Browser ohne JavaScript-Fehler geprüft. Kein Render-Deploy oder Mainnet-Test
 ist darin enthalten.

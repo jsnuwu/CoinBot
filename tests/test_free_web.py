@@ -91,11 +91,11 @@ async def test_cached_old_posts_are_shown_but_never_processed(cfg, store):
     assert not store.snapshot()["launches"]
 
 
-def test_website_preview_is_useful_without_any_network(cfg, monkeypatch):
+def test_website_is_read_only_without_any_network(cfg, monkeypatch):
     cfg = replace(cfg, free_hosting=True)
 
     async def fail_network(*args, **kwargs):
-        pytest.fail("Manual preview attempted a network request")
+        pytest.fail("Read-only website attempted a network request")
     monkeypatch.setattr(httpx.AsyncClient, "send", fail_network)
     with TestClient(create_app(cfg)) as client:
         assert client.get("/").status_code == 200
@@ -103,33 +103,26 @@ def test_website_preview_is_useful_without_any_network(cfg, monkeypatch):
         assert client.get("/health").json()["launch_enabled"] is False
         state = client.get("/api/status").json()
         assert state["monitor"]["status"] == "not_configured" and state["ephemeral_storage"] is True
-        result = client.post("/api/preview", json={"text": "Coffee on the moon!"})
-        assert result.status_code == 200
-        body = result.json()
-        assert base64.b64decode(body["image"]).startswith(b"\x89PNG")
-        assert "source_post" not in body["metadata"]  # No made-up X post URL.
-        assert body["origin"] == "user_supplied_text"
+        assert client.post("/api/preview", json={"text": "Coffee on the moon!"}).status_code == 404
         assert client.post("/api/launch", json={}).status_code == 404
+        assert '<form' not in client.get("/").text
+        assert 'Text übernehmen' not in client.get("/assets/app.js").text
 
 
-@pytest.mark.parametrize("payload", [
-    {"text": ""}, {"text": "moon", "url": "http://169.254.169.254/"},
-    {"text": "moon", "url": "https://x.com.attacker.test/a/status/1"},
-    {"text": "x" * 4001}, [],
-])
-def test_web_rejects_invalid_input_and_external_urls(cfg, payload):
-    with TestClient(create_app(cfg)) as client:
-        assert client.post("/api/preview", json=payload).status_code == 400
-
-
-def test_web_request_limits_and_sensitive_content(cfg):
-    with TestClient(create_app(cfg)) as client:
-        assert client.post("/api/preview", content="a" * 16001).status_code == 413
-        assert client.post("/api/preview", json={"text": "People killed on the moon"}).status_code == 422
-        assert client.post("/api/preview", json={"text": "Meeting at noon"}).status_code == 422
-        for _ in range(17):
-            client.post("/api/preview", json={"text": ""})
-        assert client.post("/api/preview", json={"text": "moon"}).status_code == 429
+def test_automatic_result_remains_downloadable(cfg, idea):
+    from xpump.art import render
+    app = create_app(cfg)
+    with TestClient(app) as client:
+        path = app.state.store.root / "previews" / "123"
+        path.mkdir(parents=True)
+        (path / "metadata.json").write_text(json.dumps({"name": idea.name, "symbol": idea.symbol}))
+        (path / "meme.png").write_bytes(render(idea))
+        result = client.get("/api/previews/123")
+        assert result.status_code == 200
+        data = result.json()
+        assert data["origin"] == "experimental_public_x_view"
+        assert base64.b64decode(data["image"]).startswith(b"\x89PNG")
+        assert data["metadata"]["name"] == idea.name
 
 
 @pytest.mark.parametrize("change", [dict(x_enabled=True), dict(idea_provider="ollama")])
