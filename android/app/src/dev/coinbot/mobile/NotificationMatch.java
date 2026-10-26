@@ -10,10 +10,11 @@ public final class NotificationMatch {
     private static String normalized(String text){return Normalizer.normalize(text,Normalizer.Form.NFKC).replaceAll("https?://\\S+","").replaceAll("[\\s\\p{Z}]+"," ").trim();}
     public static final class Request {
         public final String author,text,postId,key;
+        private final String originalText;
         public final long receivedAt;
         private final boolean truncated;
         private Request(String author,String text,String postId,long time){
-            this.author=author;this.text=normalized(text);this.postId=postId;this.receivedAt=time;
+            this.originalText=text;this.author=author;this.text=normalized(text);this.postId=postId;this.receivedAt=time;
             this.truncated=this.text.endsWith("…")||this.text.endsWith("...");
             this.key=author+"\n"+postId+"\n"+this.text;
         }
@@ -36,6 +37,11 @@ public final class NotificationMatch {
         Request result=new Request(author,text,candidate==null?"":candidate.id,receivedAt);
         if(!result.fresh(now)||result.postId.isEmpty()&&result.text.isEmpty())return null;
         return result;
+    }
+    /** Only complete notification text can produce an explicitly unverified local fallback. */
+    public static Core.NotificationDraft localDraft(Request request,long now){
+        if(request==null||!request.fresh(now))return null;
+        return Core.notificationDraft("@"+request.author,request.originalText,Collections.singleton(request.author));
     }
     public static BrowserRules.Post select(Request request,List<BrowserRules.Post> posts,long now){
         if(request==null||!request.fresh(now))return null;

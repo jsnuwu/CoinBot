@@ -22,7 +22,7 @@ fehlende Berechtigungen und Anmeldung; bloße Dienstbereitschaft wird nicht als 
 angezeigt. Entwürfe sind nach bestätigtem Post-Link filterbar und öffnen eine eigene Detailansicht.
 Technische Diagnose ist erst bei Bedarf sichtbar. Mehr dazu: [UI/UX-Konzept](docs/android-ui.md).
 
-Unter [`android/`](android/README.md) liegt die Android-App **0.5.1** (Android 8+). Ihr Auslöser ist
+Unter [`android/`](android/README.md) liegt die Android-App **0.5.2** (Android 8+). Ihr Auslöser ist
 **ausschließlich eine eigene X-Handy-Mitteilung**. Die Profil-Rundläufe aus 0.4.0 wurden nach der
 Nutzerkorrektur entfernt: Ohne Mitteilung keine automatische X-Seitenabfrage, auch nicht beim Start.
 Bereits sichtbare echte X-Mitteilungen innerhalb von fünf Minuten dürfen beim Verbinden eingereiht werden.
@@ -52,6 +52,11 @@ zu keinem neuen Seitenaufruf. Nach jedem Auftrag wird die X-Seite entladen. Quel
 weitere Aufträge für 15 Minuten; danach wird erst eine neue Mitteilung verarbeitet. Maximal 20 Entwürfe
 je 24 Stunden und 60 Sekunden Abstand bleiben erhalten. Alte `notification_unverified`-Entwürfe werden
 nicht nachträglich als bestätigt markiert. Konto, Datenbank und bestehende Entwürfe bleiben beim lokalen Update erhalten.
+
+Version 0.5.2 korrigiert den Webmodus: Ohne eindeutigen Post-Treffer wird aus vollständigem
+Mitteilungstext ein lokaler Entwurf mit Bild erstellt, ausdrücklich ohne bestätigte Quelle.
+Gekürzte Texte werden nicht ergänzt und Links nicht geraten. Vorschlagslimits werden sichtbar gemeldet.
+Die zusätzlichen zehn Regeltests und APK-Update-Hinweise stehen in der Android-Anleitung.
 
 Version 0.5.1 sichert die lokale Bildkette ab: variierte Themenzeichnungen mit zusätzlichen
 inhaltlichen Motiven, geprüfte atomare PNG-/JSON-Speicherung, automatische Reparatur fehlender oder

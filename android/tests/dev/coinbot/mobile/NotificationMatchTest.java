@@ -46,6 +46,17 @@ public final class NotificationMatchTest {
         for(int i=0;i<16;i++)bounded.offer(request("Post "+i),NOW);
         check(bounded.offer(request("Overflow"),NOW).equals("full"),"notification flood has a bounded queue");
         bounded.clear();check(bounded.poll(NOW)==null,"rate limit clears pending work without polling afterward");
+        Core.NotificationDraft fallback=NotificationMatch.localDraft(request("Starship to Mars https://t.co/abc"),NOW);
+        check(fallback!=null&&!fallback.publishable,"unmatched complete notification produces local-only draft");
+        check(fallback.text.equals("Starship to Mars https://t.co/abc"),"fallback retains original notification text");
+        check(NotificationMatch.localDraft(request("Starship…"),NOW)==null,"truncated notification cannot become invented complete draft");
+        check(NotificationMatch.localDraft(request(longText.substring(0,48)+"…"),NOW)==null,"even long prefixes remain incomplete without verified post");
+        check(NotificationMatch.localDraft(exact,NOW)==null,"ID without text cannot produce an invented theme");
+        check(NotificationMatch.localDraft(request("Starship to Mars"),NOW+301000)==null,"stale fallback rejected");
+        check(NotificationMatch.localDraft(null,NOW)==null,"no notification means no draft");
+        check(Core.draftMetadata(Core.idea(fallback.text,fallback.id),fallback.id+".png","",false).get("source_verified").equals(false),"fallback does not claim source confirmation");
+        check(!Core.draftMetadata(Core.idea(fallback.text,fallback.id),fallback.id+".png","",false).containsKey("source_post"),"fallback does not invent a post URL");
+        check(NotificationMatch.localDraft(request("Starship to Mars"),NOW).id.equals(NotificationMatch.localDraft(request("Starship to Mars"),NOW).id),"repeated notification has stable deduplication key");
         System.out.println(checks+" notification-trigger/matching checks passed");
     }
 }

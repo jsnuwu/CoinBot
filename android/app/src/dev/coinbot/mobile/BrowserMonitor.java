@@ -40,7 +40,7 @@ public final class BrowserMonitor extends Service {
     static boolean requestNotification(NotificationMatch.Request request){
         BrowserMonitor current=live;if(current==null)return false;
         current.handler.post(()->{
-            if(System.currentTimeMillis()<current.blockedUntil){current.state("backoff","X-Zugriff begrenzt; diese Mitteilung bleibt ohne Link");return;}
+            if(System.currentTimeMillis()<current.blockedUntil){current.state("backoff","X-Zugriff begrenzt; lokaler Mitteilungsentwurf ohne bestätigten Link wird geprüft");current.localFallback(request);return;}
             String outcome=current.inbox.offer(request,System.currentTimeMillis());
             if("added".equals(outcome)){if(!current.busy)current.schedule(0);}
             else Diagnostics.note(current,"duplicate".equals(outcome)?"duplicate":null,"X-Mitteilung nicht eingereiht: "+outcome);
@@ -118,7 +118,7 @@ public final class BrowserMonitor extends Service {
                 if(!signedIn||rows==null||rows.length()==0){
                     if(attempt<5){handler.postDelayed(()->sample(ticket,attempt+1),2000);return;}
                     if(!signedIn){loginRequired("X-Anmeldung nicht bestätigt. X-Anmeldung öffnen und direkt bei X anmelden.");return;}
-                    state("@"+expected+": Mitteilungs-Post nicht lesbar; kein Link übernommen");finishCycle();return;
+                    state("@"+expected+": Post nicht lesbar; lokaler Mitteilungsentwurf wird geprüft");localFallback(current);finishCycle();return;
                 }
                 List<BrowserRules.Post> posts=new ArrayList<>();
                 long now=System.currentTimeMillis();
@@ -130,7 +130,7 @@ public final class BrowserMonitor extends Service {
                 prefs().edit().putLong("browser_last_read",now).putString("browser_last_account",expected).putString("x_auth_state","observed").apply();
                 BrowserRules.Post match=NotificationMatch.select(current,posts,now);
                 if(match==null&&attempt<5){handler.postDelayed(()->sample(ticket,attempt+1),2000);return;}
-                if(match==null)state("Kein eindeutiger Treffer zur X-Mitteilung; kein fremder/neuerer Post übernommen. Wartet auf nächste Mitteilung.");
+                if(match==null){state("Kein eindeutiger Post-Link; lokaler Mitteilungsentwurf ohne bestätigte Quelle wird geprüft.");localFallback(current);}
                 else{
                     state("Post aus X-Mitteilung eindeutig zugeordnet · @"+expected+" · wartet danach auf nächste Mitteilung");
                     try{worker.execute(()->prepare(match));}catch(RejectedExecutionException e){state("Entwurfswarteschlange voll; Mitteilung nicht verarbeitet");}
@@ -147,11 +147,31 @@ public final class BrowserMonitor extends Service {
             Core.Idea idea=BrowserRules.idea(post);
             if(idea==null){store.finish(post.id,"Kein brauchbares Thema oder vertraulicher Inhalt",null);return;}
             if(DraftWriter.save(this,store,post.id,idea,post.url,true,"x_browser_linked",post,null))Diagnostics.note(this,"draft_browser","Entwurf mit Originalpost: "+idea.name);
+            else Diagnostics.note(this,null,"Kein neuer Entwurf: Vorschlagslimit erreicht (20 pro Tag / 60 Sekunden Abstand)");
         }catch(Exception e){Diagnostics.note(this,null,"Lokale Entwurfsspeicherung fehlgeschlagen; Bildstatus im Entwurf prüfen");}
+    }
+    private void localFallback(NotificationMatch.Request request){
+        if(request==null)return;
+        try{worker.execute(()->{
+            if(!prefs().getBoolean("enabled",false)||!prefs().getBoolean("browser_enabled",false))return;
+            Core.NotificationDraft draft=NotificationMatch.localDraft(request,System.currentTimeMillis());
+            if(draft==null){Diagnostics.note(this,"incomplete","Kein bestätigter Post-Link und Mitteilungstext fehlt / ist gekürzt oder veraltet; kein Entwurf");return;}
+            try(LocalStore store=new LocalStore(this)){
+                if(!Core.accounts(prefs().getString("accounts",Core.DEFAULT_ACCOUNTS)).contains(draft.author))return;
+                String url=request.postId.isEmpty()?"":Core.postUrl("https://x.com/i/web/status/"+request.postId);
+                store.prune();if(!store.claimNotification(draft,url)){Diagnostics.note(this,"duplicate","Mitteilungsentwurf bereits vorhanden; kein Duplikat");return;}
+                Core.Idea idea=Core.idea(draft.text,draft.id);
+                if(idea==null){store.finish(draft.id,"Kein brauchbares Thema oder vertraulicher Inhalt",null);Diagnostics.note(this,"no_topic","Mitteilung ohne brauchbares Thema oder mit vertraulichem Inhalt; kein Entwurf");return;}
+                if(DraftWriter.save(this,store,draft.id,idea,url,false,"notification_unverified",null,draft.text))
+                    Diagnostics.note(this,"draft_notification","Lokaler Entwurf mit Bild aus X-Mitteilung: "+idea.name+" · Originalpost nicht bestätigt");
+                else Diagnostics.note(this,null,"Kein neuer Entwurf: Vorschlagslimit erreicht (20 pro Tag / 60 Sekunden Abstand)");
+            }catch(Exception e){Diagnostics.note(this,null,"Mitteilungsentwurf konnte nicht lokal gespeichert werden; Bildstatus prüfen");}
+        });}catch(RejectedExecutionException e){Diagnostics.note(this,null,"Lokale Entwurfswarteschlange voll; kein Entwurf gespeichert");}
     }
     private void blankPage(){if(web!=null){web.stopLoading();web.loadUrl("about:blank");}}
     private void finishCycle(){busy=false;scheduled=false;current=null;++generation;blankPage();schedule(0);}
     private void failure(String message,boolean limited){
+        localFallback(current);
         Diagnostics.note(this,"source_failed",message);state(limited?"backoff":"error",message);busy=false;scheduled=false;++generation;blankPage();
         if(limited){blockedUntil=System.currentTimeMillis()+900_000;prefs().edit().putLong("browser_blocked_until",blockedUntil).apply();}
         if(limited)inbox.clear();current=null;schedule(0);

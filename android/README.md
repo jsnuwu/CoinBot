@@ -1,4 +1,4 @@
-# CoinBot Android 0.5.1 – lokale Bilder und übersichtliche Entwürfe
+# CoinBot Android 0.5.2 – lokale Bilder und übersichtliche Entwürfe
 
 Version 0.4.1 korrigiert den Umfang von 0.4.0: **Keine regelmäßige Profilbeobachtung.** Eine eigene
 X-Handy-Mitteilung ist der einzige automatische Auslöser. Login und Link-Auflösung laufen lokal auf
@@ -294,3 +294,33 @@ Auf echtem Android noch prüfen: Update von der installierten 0.4.1, Erhalt von 
 Entwürfen, automatische Ergänzung alter fehlender Bilder, neue echte X-Mitteilung → Motiv/PNG/JSON →
 Vorschau/Großansicht, Verhalten bei vollem Speicher sowie Neustart während der Speicherung.
 Es fand kein echter Handy-, Login- oder Pump.fun-Test statt.
+
+
+## Änderungen in 0.5.2: Entwurf trotz fehlendem Web-Treffer
+
+Die Handy-Diagnose von 0.5.1 zeigte einen aktiven Empfang und ein lesbares Profil, aber keinen
+eindeutigen Mitteilungs-Post. Im Webmodus kehrte der Empfänger früh zurück und der Browser verwarf
+solche Aufträge ohne den sonst vorhandenen lokalen Mitteilungsentwurf. Das war ein Ablaufdefekt,
+kein gemeldeter PNG-Fehler (17 Bildreparaturen / 0 Bildfehler bedeuten nicht 17 neue Posts).
+
+Nach erfolglosem Abgleich auf einer lesbaren Seite, leerer Post-Liste, Netz-/HTTP-Fehler oder bereits
+aktiver Zugriffssperre wird jetzt ein lokaler Entwurf aus dem **vollständigen Original-Mitteilungstext**
+geprüft. Er erhält Name, Ticker, Beschreibung und Bild, aber `notification_unverified`,
+`source_verified=false` und `publishable=false`. Ohne tatsächlich auslesbare Post-ID wird kein Link
+erzeugt. Ein beobachteter Link bleibt unbestätigt. Gekürzter/fehlender Text, unbekannte Absender,
+veraltete Aufträge und vertrauliche Inhalte liefern keinen Ersatzentwurf. Die Anmeldehürde bleibt
+ein separater Stopp; es gibt keine Umgehung und keinen zusätzlichen Profilbesuch.
+
+Die begrenzte lokale Warteschlange und SQLite-Schlüssel verhindern wiederholte Entwürfe desselben
+Mitteilungstexts. Auch der Ersatzweg hält 20 Entwürfe pro Tag / 60 Sekunden Mindestabstand ein.
+Blockierte Vorbereitungen werden ausdrücklich als Vorschlagslimit gemeldet. Die Diagnose zählt
+fehlende auslesbare Post-Links jetzt auch im Webmodus. Alte nicht gespeicherte Handy-Mitteilungen
+können aus dieser Diagnose nicht nachträglich rekonstruiert werden.
+
+Verifiziert: 137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-, **35 Mitteilungs-/Zuordnungs-**,
+18 UI-, 18 DOM- und 37 Datei-/Reparatur-/Motivprüfungen, Ruff, Offline-Demo und APK-Build.
+Die zehn neuen Regeln prüfen vollständige/gekürzte/veraltete Mitteilungen, fehlenden Text, Erhalt des
+Originaltexts, Deduplizierung und unbestätigte Metadaten ohne erfundenen Link. Host-/Fixturetests
+beweisen keine echte Android-WebView-/Dienstzustellung. Kein Handytest dieser Version.
+Die Update-APK verwendet denselben verfügbaren lokalen Signierer wie die bereitgestellte 0.5.1;
+Einstellungen, Sitzung, Datenbankschema und Entwürfe bleiben unverändert.

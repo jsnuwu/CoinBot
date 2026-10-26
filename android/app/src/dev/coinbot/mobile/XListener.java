@@ -48,6 +48,7 @@ public final class XListener extends NotificationListenerService {
         Core.Candidate candidate=links.candidate(allowed);
         Diagnostics.links(this,links.summary(candidate!=null));
         if(prefs.getBoolean("browser_mode",false)){
+            if(candidate==null)note("no_link","Keine eindeutige Post-ID in X-Mitteilung; gezielter Web-Abgleich wird benötigt");
             String author=Core.notificationAuthor(title,allowed);
             NotificationMatch.Request request=NotificationMatch.request(author,body,event.getPostTime(),candidate,System.currentTimeMillis());
             if(request!=null&&BrowserMonitor.requestNotification(request))note(null,"Linksuche für empfangene X-Mitteilung von @"+author+" eingereiht");
