@@ -15,7 +15,7 @@ final class Diagnostics {
     static String text(Context context,boolean access){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         long when=p.getLong("last_event_time",0);
-        return "CoinBot 0.5.2\n"+summary(context)+
+        return "CoinBot 0.6.0\n"+summary(context)+
             "\nBenachrichtigungszugriff: "+(access?"erteilt":"fehlt")+
             "\nMitteilungsdienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
             "\nMitteilungsausloeser: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
@@ -25,6 +25,7 @@ final class Diagnostics {
             "\nNachrichtenformat ignoriert: "+p.getLong("diag_private",0)+
             "\nOhne passenden Link: "+p.getLong("diag_no_link",0)+
             "\nLetzte Linkpruefung: "+p.getString("last_link_scan","Seit Update noch keine X-Mitteilung geprüft")+
+            "\nLetzter Webabgleich: "+p.getString("last_web_match","Noch kein Abgleich seit Update")+
             "\nAbsender nicht zugeordnet: "+p.getLong("diag_unknown_author",0)+
             "\nText fehlt/gekuerzt: "+p.getLong("diag_incomplete",0)+
             "\nKein passendes Thema: "+p.getLong("diag_no_topic",0)+

@@ -63,7 +63,7 @@ final class LocalStore extends SQLiteOpenHelper {
     void prune(){
         long cutoff=System.currentTimeMillis()-30L*86_400_000;
         try(Cursor c=getReadableDatabase().rawQuery("SELECT id FROM posts WHERE time<?",new String[]{Long.toString(cutoff)})){
-            while(c.moveToNext())for(String suffix:new String[]{".png",".json"})new java.io.File(context.getFilesDir(),"drafts/"+c.getString(0)+suffix).delete();
+            while(c.moveToNext())for(String suffix:new String[]{".png",".json",".before-v3.png",".before-v3.json"})new java.io.File(context.getFilesDir(),"drafts/"+c.getString(0)+suffix).delete();
         }
         getWritableDatabase().delete("posts","time<?",new String[]{Long.toString(cutoff)});
     }

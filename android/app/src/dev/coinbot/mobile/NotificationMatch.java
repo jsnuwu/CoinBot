@@ -7,7 +7,7 @@ import java.util.*;
 /** An X notification is the only work item. No account rotation or periodic discovery. */
 public final class NotificationMatch {
     private NotificationMatch(){}
-    private static String normalized(String text){return Normalizer.normalize(text,Normalizer.Form.NFKC).replaceAll("https?://\\S+","").replaceAll("[\\s\\p{Z}]+"," ").trim();}
+    private static String normalized(String text){return Normalizer.normalize(text,Normalizer.Form.NFKC).replaceAll("https?://\\S+","").replaceAll("[\uFE0E\uFE0F\u200B\u200E\u200F]","").replace('\u2019','\'').replace('\u2018','\'').replaceAll("[\\s\\p{Z}]+"," ").trim();}
     public static final class Request {
         public final String author,text,postId,key;
         private final String originalText;
@@ -51,6 +51,11 @@ public final class NotificationMatch {
             result=post;
         }
         return result;
+    }
+    public static String summary(Request request,List<BrowserRules.Post> posts,long now){
+        Set<String> ids=new HashSet<>();if(request!=null&&request.fresh(now))for(BrowserRules.Post post:posts)if(request.matches(post))ids.add(post.id);int count=ids.size();
+        return "Gültige Posts: "+posts.size()+"; passende Texte/IDs: "+count+"; "+
+            (request==null||!request.fresh(now)?"Auftrag veraltet":count==0?"kein passender Text/Zeitraum":count>1?"mehrdeutig, kein Link bestätigt":"eindeutig passend");
     }
     public static final class Inbox {
         private final Deque<Request> requests=new ArrayDeque<>();

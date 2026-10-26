@@ -19,7 +19,7 @@ final class DraftWriter {
                 // Save source evidence first, so a failed image write can be repaired without source loss.
                 json.put("image_status","pending");
                 DraftAssets.write(DraftAssets.file(context,id,".json"),json);
-                Art.save(idea,DraftAssets.file(context,id,".png"),post==null?sourceText:post.text);
+                Art.save(context,idea,DraftAssets.file(context,id,".png"),post==null?sourceText:post.text);
                 DraftAssets.imageMetadata(json,id,idea);
                 DraftAssets.write(DraftAssets.file(context,id,".json"),json);
                 store.imageStatus(id,"ready");

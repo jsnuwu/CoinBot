@@ -1,5 +1,14 @@
 # CoinBot Android test builds
 
+[CoinBot 0.6.0 herunterladen](https://github.com/jsnuwu/CoinBot/raw/refs/heads/main/releases/CoinBot-Android-0.6.0.apk)
+
+Version 0.6.0 / Code 11 enthält 20 gebündelte surreale Meme-Szenen und korrigiert
+Emoji-/Quote-Text-Verluste im gezielten X-Webabgleich. Keine neue KI-Generierung pro Post;
+Szenen können sich wiederholen. Alte Bilder lassen sich mit Sicherung umgestalten.
+APK: rund 7,9 MB; SHA-256 `d7fba608c983e44f958a30e1167651759ae2077103ad4adb049352633581d7ae`.
+Signierer identisch mit 0.5.2. 137 Python-Tests und 374 Android-/Datei-/Fixture-Prüfungen bestehen;
+keine tatsächlichen Handytests oder nachgewiesen höhere echte Linkquote.
+
 [CoinBot 0.5.2 herunterladen](https://github.com/jsnuwu/CoinBot/raw/refs/heads/main/releases/CoinBot-Android-0.5.2.apk)
 
 Version 0.5.2 / Code 10 behebt den fehlenden lokalen Mitteilungsentwurf bei erfolglosem Web-Abgleich.

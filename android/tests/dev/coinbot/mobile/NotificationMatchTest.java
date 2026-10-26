@@ -57,6 +57,11 @@ public final class NotificationMatchTest {
         check(Core.draftMetadata(Core.idea(fallback.text,fallback.id),fallback.id+".png","",false).get("source_verified").equals(false),"fallback does not claim source confirmation");
         check(!Core.draftMetadata(Core.idea(fallback.text,fallback.id),fallback.id+".png","",false).containsKey("source_post"),"fallback does not invent a post URL");
         check(NotificationMatch.localDraft(request("Starship to Mars"),NOW).id.equals(NotificationMatch.localDraft(request("Starship to Mars"),NOW).id),"repeated notification has stable deduplication key");
+        check(NotificationMatch.select(request("Rocket 🚀"),Arrays.asList(post("elonmusk","Rocket 🚀\uFE0F",10000)),NOW)!=null,"emoji presentation selectors do not lose an otherwise exact match");
+        check(NotificationMatch.select(request("It’s Starship"),Arrays.asList(post("elonmusk","It's Starship",10000)),NOW)!=null,"typographic apostrophe normalized");
+        check(NotificationMatch.select(request("Rocket 🚀"),Arrays.asList(post("elonmusk","Rocket 🐕",10000)),NOW)==null,"different emoji still means different content");
+        check(NotificationMatch.select(request("Rocket to Mars"),Arrays.asList(post("elonmusk","Rocket from Mars",10000)),NOW)==null,"word changes remain rejected");
+        check(NotificationMatch.summary(request("Starship to Mars"),Arrays.asList(target,post("elonmusk","Starship to Mars",20000)),NOW).contains("passende Texte/IDs: 2"),"diagnostic reports candidate count without raw post data");
         System.out.println(checks+" notification-trigger/matching checks passed");
     }
 }

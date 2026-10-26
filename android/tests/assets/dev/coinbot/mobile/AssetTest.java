@@ -51,6 +51,20 @@ public final class AssetTest {
             check(!"ready".equals(row.get("image_status")),"write failure not marked successful");check(row.get("name").equals(idea.name),"failed draft survives for repair");
             check(DraftAssets.read(json).getString("notification_text").equals("fresh text"),"source saved before image failure");
             Art.fail=false;DraftAssets.repair(context,store,row);check("ready".equals(row.get("image_status")),"failed draft recoverable");
+            JSONObject beforeRestyle=DraftAssets.read(json);beforeRestyle.put("source_verified",true);beforeRestyle.put("source_text","preserve confirmed original");beforeRestyle.put("custom","keep");DraftAssets.write(json,beforeRestyle);
+            byte[] oldPng=Files.readAllBytes(image.toPath()),oldJson=Files.readAllBytes(json.toPath());
+            DraftAssets.repair(context,store,row,true);
+            check(Arrays.equals(oldPng,Files.readAllBytes(DraftAssets.file(context,"123",".before-v3.png").toPath())),"restyle backs up original image");
+            check(Arrays.equals(oldJson,Files.readAllBytes(DraftAssets.file(context,"123",".before-v3.json").toPath())),"restyle backs up original metadata");
+            JSONObject restyled=DraftAssets.read(json);
+            check(restyled.getString("image_generator").equals(MemeScene.GENERATOR),"new compositor provenance");
+            check(restyled.getString("source_text").equals("preserve confirmed original")&&restyled.getBoolean("source_verified")&&restyled.getString("custom").equals("keep"),"restyle leaves source evidence and custom data intact");
+            DraftAssets.repair(context,store,row,true);
+            check(Arrays.equals(oldJson,Files.readAllBytes(DraftAssets.file(context,"123",".before-v3.json").toPath())),"repeated restyle never overwrites original backup");
+            Files.write(json.toPath(),"{broken original evidence".getBytes("UTF-8"));
+            byte[] preservedImage=Files.readAllBytes(image.toPath());DraftAssets.repair(context,store,row,true);
+            check(Arrays.equals(preservedImage,Files.readAllBytes(image.toPath())),"restyle refuses to overwrite valid image with broken metadata");
+            check(new String(Files.readAllBytes(json.toPath()),"UTF-8").equals("{broken original evidence"),"restyle does not erase malformed source evidence");
             Set<String> styles=new HashSet<>();for(int i=0;i<30;i++){ArtStyle style=new ArtStyle(Core.idea("Rocket to Mars",String.valueOf(i)));styles.add(style.hue+":"+style.layout+":"+style.decoration);}
             check(styles.size()>20,"per-draft visual variation");
             for(String[] example:new String[][]{{"transport","New airport flight","aircraft"},{"finance","Bitcoin markets","crypto"},{"weather","Snow in Florida","snow"},{"weather","Heat and sunshine","sun"},{"politics","Iran elections","ballot"},{"transport","Railway to Seoul","transport"}}){

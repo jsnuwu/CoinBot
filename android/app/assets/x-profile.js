@@ -7,18 +7,28 @@
   const posts = [];
   if (signedIn && !gated) {
     for (const article of Array.from(document.querySelectorAll('article[data-testid="tweet"]')).slice(0, 20)) {
-      const times = Array.from(article.querySelectorAll('a[href*="/status/"] time'));
+      if (article.parentElement.closest('article[data-testid="tweet"]')) continue;
+      // Quote cards have their own text/time. Never attach those to the outer post's permalink.
+      const outer = node => {
+        for (let parent=node.parentElement; parent && parent!==article; parent=parent.parentElement) {
+          if (parent.matches('[data-testid="quoteTweet"], div[role="link"], article')) return false;
+        }
+        return true;
+      };
+      const times = Array.from(article.querySelectorAll('a[href*="/status/"] time')).filter(outer);
       const time = times[0];
       const anchor = time && time.closest('a');
-      const text = article.querySelector('[data-testid="tweetText"]');
+      const text = Array.from(article.querySelectorAll('[data-testid="tweetText"]')).find(outer);
       if (!anchor || !text || !time) continue;
       const href = new URL(anchor.getAttribute('href'), page).href;
-      const quoted = times.some(t => t.closest('a').getAttribute('href') !== anchor.getAttribute('href')) ||
-        !!article.querySelector('[data-testid="quoteTweet"], div[role="link"] a[href*="/status/"]');
-      posts.push({url: href, text: (text.innerText || text.textContent || '').slice(0, 4001),
+      const copy = text.cloneNode(true);
+      for (const image of copy.querySelectorAll('img')) image.replaceWith(image.getAttribute('alt') || '');
+      for (const br of copy.querySelectorAll('br')) br.replaceWith('\n');
+      const body = copy.innerText || copy.textContent || '';
+      posts.push({url: href, text: body.slice(0, 4001),
         createdAt: time.getAttribute('datetime') || '',
-        context: quoted || !!article.querySelector('[data-testid="socialContext"], [data-testid="promotedIndicator"], [data-testid="replyingTo"], a[href*="/history"]'),
-        truncated: !!article.querySelector('[data-testid="tweet-text-show-more-link"]')});
+        context: Array.from(article.querySelectorAll('[data-testid="socialContext"], [data-testid="promotedIndicator"], [data-testid="replyingTo"], a[href*="/history"]')).some(outer),
+        truncated: Array.from(article.querySelectorAll('[data-testid="tweet-text-show-more-link"]')).some(outer)});
     }
   }
   return JSON.stringify({page, signedIn, gated, posts});

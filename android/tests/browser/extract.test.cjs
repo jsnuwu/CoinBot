@@ -17,8 +17,8 @@ check(()=>assert.equal(read(post('123', 'Starship to Mars')).posts[0].text, 'Sta
 check(()=>assert.equal(read(post('123', 'Starship to Mars')).posts[0].createdAt, '2026-10-26T15:00:00Z'));
 check(()=>assert.equal(read(post('123', 'Starship')).posts[0].context, false));
 check(()=>assert.equal(read(post('123', 'Starship', '<div data-testid="socialContext">Reposted</div>')).posts[0].context, true));
-check(()=>assert.equal(read(post('123', 'Starship', '<div data-testid="quoteTweet"><a href="/other/status/456"><time></time></a></div>')).posts[0].context, true));
-check(()=>assert.equal(read(post('123', 'Starship', '<div role="link"><a href="/other/status/456">Quote</a></div>')).posts[0].context, true));
+check(()=>assert.equal(read(post('123', 'Starship', '<div data-testid="quoteTweet"><a href="/other/status/456"><time></time></a></div>')).posts[0].context, false));
+check(()=>assert.equal(read(post('123', 'Starship', '<div role="link"><a href="/other/status/456">Quote</a></div>')).posts[0].context, false));
 check(()=>assert.equal(read(post('123', 'Starship', '<span data-testid="tweet-text-show-more-link">More</span>')).posts[0].truncated, true));
 check(()=>assert.equal(read(post('123', 'Starship'), false).posts.length, 0));
 check(()=>assert.equal(read('<input type="password" value="SECRET">'+post('123', 'Starship')).posts.length, 0));
@@ -30,4 +30,11 @@ check(()=>assert.equal(read(post('123', 'rocket', '<span data-testid="promotedIn
 check(()=>assert.equal(read(post('123', 'rocket', '<span data-testid="replyingTo">Replying to</span>')).posts[0].context, true));
 check(()=>assert.equal(read(post('123', 'rocket', '<a href="/elonmusk/status/123/history">Edited</a>')).posts[0].context, true));
 check(()=>assert.equal(read(post('123', '&lt;script&gt;steal cookies&lt;/script&gt;')).posts[0].text, '<script>steal cookies</script>'));
+check(()=>assert.equal(read(post('123', 'Starship <img alt="🚀" src="emoji.png">')).posts[0].text, 'Starship 🚀'));
+check(()=>assert.equal(read(post('123', 'First<br>Second')).posts[0].text.replace(/\s+/g, ' '), 'First Second'));
+check(()=>assert.equal(read(post('123', 'Own text', '<div data-testid="quoteTweet"><div data-testid="tweetText">Foreign text</div><span data-testid="tweet-text-show-more-link">More</span></div>')).posts[0].text, 'Own text'));
+check(()=>assert.equal(read(post('123', 'Own text', '<div data-testid="quoteTweet"><span data-testid="tweet-text-show-more-link">More</span></div>')).posts[0].truncated, false));
+check(()=>assert.equal(read('<article data-testid="tweet"><a href="/elonmusk/status/123"><time></time></a><div data-testid="quoteTweet"><div data-testid="tweetText">Quoted text only</div></div></article>').posts.length, 0));
+check(()=>assert.equal(read(post('123','Own text','<div data-testid="quoteTweet"><a href="/other/status/456"><time></time></a></div>')).posts[0].url,url+'/status/123'));
+check(()=>assert.equal(read(post('123','Own text',post('456','Nested quote'))).posts.length,1));
 console.log(`${checks} X DOM fixture checks passed (no login/device test)`);

@@ -1,4 +1,4 @@
-# CoinBot Android 0.5.2 – lokale Bilder und übersichtliche Entwürfe
+# CoinBot Android 0.6.0 – lokale Bilder und übersichtliche Entwürfe
 
 Version 0.4.1 korrigiert den Umfang von 0.4.0: **Keine regelmäßige Profilbeobachtung.** Eine eigene
 X-Handy-Mitteilung ist der einzige automatische Auslöser. Login und Link-Auflösung laufen lokal auf
@@ -324,3 +324,51 @@ Originaltexts, Deduplizierung und unbestätigte Metadaten ohne erfundenen Link. 
 beweisen keine echte Android-WebView-/Dienstzustellung. Kein Handytest dieser Version.
 Die Update-APK verwendet denselben verfügbaren lokalen Signierer wie die bereitgestellte 0.5.1;
 Einstellungen, Sitzung, Datenbankschema und Entwürfe bleiben unverändert.
+
+
+## Änderungen in 0.6.0: surreale Meme-Szenen und genauerer Link-Abgleich
+
+Die bisherigen Canvas-Kategoriezeichen waren kein ausreichender Meme-Bildstil. Neue Entwürfe
+verwenden deshalb 20 vollständige surreale Szenen: unter anderem Raketenfrosch, Koffein-Waschbär,
+Pizza-Katzenkaiser, schmelzender Roboter-Gärtner, Börsen-Bulle/Bär, Pilz-Parlament, Universums-Axolotl,
+Croissant-Zug und fliegender Koi. Keine Ticker-/Titelbalken und keine Kategorie-Icons im Bild.
+
+Die zwei Bildtafeln wurden einmalig als Illustrationen erzeugt und unverändert mit der APK gebündelt.
+`MemeScene` wählt anhand des lokal erkannten Themas und vorhandenen Quelltexts eine Szene aus.
+Android Canvas komponiert daraus einen 768×768-Ausschnitt mit kleiner Ausschnitt-, Farb- und
+Lichtvariation. **Kein neues KI-Bild pro Post**, keine beliebig offene Text-zu-Bild-Generierung:
+Szenen können sich bei ähnlichen Themen wiederholen. Der laufende Betrieb benötigt keine Bild-API,
+kein Bild-Abo, keinen Download und keinen Modellserver. Motivwahl bleibt eine begrenzte Heuristik.
+Die Bildmetadaten nennen `local_surreal_compositor_v3`, Szene und Quelldatei ehrlich.
+
+Neue Entwürfe und die Reparatur fehlender Bilder verwenden den neuen Stil. Vorhandene gültige Bilder
+werden nicht ungefragt ersetzt. **Einstellungen → Vorhandene Bilder im Meme-Stil erneuern** gestaltet
+bestehende Entwürfe lokal neu; alternativ gibt es in der Detailansicht eine Aktion für genau ein Bild.
+Das erste vorherige PNG und dessen JSON werden als `.before-v3.png` / `.before-v3.json` gesichert
+und bei wiederholter Gestaltung nicht überschrieben. Namen, Texte, Links und Bestätigungsstatus
+werden nicht geändert. Bei kaputten bestehenden JSON-Quellenbelegen wird die Umgestaltung verweigert.
+Die bisherigen 30-Tage-Löschregeln erfassen auch Bildsicherungen.
+
+Warum oft kein Link entsteht: Android liefert häufig keine auslesbare Post-ID, sondern nur ein
+nicht öffentlich auslesbares `PendingIntent`. Der Web-Abgleich braucht dann eindeutig passenden
+Autor, Text und Zeitraum. Außerdem las der bisherige DOM-Reader Emoji-Bilder nicht mit und verwarf
+jeden Quote-Post pauschal. Version 0.6.0 übernimmt Emoji-Alternativtexte, normalisiert reine
+Darstellungszeichen/typografische Apostrophe und prüft bei Quote-Posts ausschließlich den eigenen
+äußeren Text samt eigenem Link/Zeitstempel. Verschachtelte Quote-Texte/-Links werden nie dem äußeren
+Post zugeordnet; reine Quote-Karten ohne eigenen Text liefern keinen bestätigten Treffer.
+Antworten/Reposts/Anzeigen/erkennbare Edits bleiben ausgeschlossen. Keine unscharfe Textähnlichkeit,
+kein neuester Ersatzpost, kein Profil-Rundlauf und keine Anmeldungsschutz-Umgehung.
+
+Die Diagnose zeigt `Letzter Webabgleich` mit Anzahl gelesener DOM-Posts, ausgeschlossener Kontexte,
+gekürzter Texte, gültiger Posts und passender Texte/IDs. Sie enthält dafür keine Rohtexte oder Tokens.
+Das verbessert die Fehlersuche, belegt aber nicht, warum die zwei früher gemeldeten Posts konkret
+nicht gefunden wurden. Eine höhere echte Linkquote ist ohne neuen Handytest noch nicht nachgewiesen.
+
+Verifiziert: 137 Python-Tests, 126 Core-, 15 Mitteilungsmetadaten-, 26 Browser-Regel-, 40 Zuordnungs-,
+18 UI-, 25 DOM-, 44 Datei-/Reparatur- und 80 Bildquellen-/Motivrouting-/Ausschnittprüfungen.
+Ruff, Offline-Demo, APK-Build und Signaturprüfung bestehen. Bildquellen wurden visuell angesehen;
+Host-ImageIO/Datei-/DOM-Fixtures ersetzen weder Android Canvas noch eine echte X-Mitteilung.
+Die APK verwendet denselben lokalen Signierer wie die bereitgestellte 0.5.2.
+Noch am Handy prüfen: Linkquote mit neuen Mitteilungen samt Abgleichdiagnose, Quote-/Emoji-Fälle,
+Meme-Vorschau/Großansicht, Umgestaltung alter Bilder mit Daten-/Quellenerhalt und Speicherausfälle.
+Keine Pump-Veröffentlichung, Wallet-Anbindung oder Änderung des zurückgestellten Komma-Parsers.

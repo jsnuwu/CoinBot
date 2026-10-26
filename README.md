@@ -22,7 +22,7 @@ fehlende Berechtigungen und Anmeldung; bloße Dienstbereitschaft wird nicht als 
 angezeigt. Entwürfe sind nach bestätigtem Post-Link filterbar und öffnen eine eigene Detailansicht.
 Technische Diagnose ist erst bei Bedarf sichtbar. Mehr dazu: [UI/UX-Konzept](docs/android-ui.md).
 
-Unter [`android/`](android/README.md) liegt die Android-App **0.5.2** (Android 8+). Ihr Auslöser ist
+Unter [`android/`](android/README.md) liegt die Android-App **0.6.0** (Android 8+). Ihr Auslöser ist
 **ausschließlich eine eigene X-Handy-Mitteilung**. Die Profil-Rundläufe aus 0.4.0 wurden nach der
 Nutzerkorrektur entfernt: Ohne Mitteilung keine automatische X-Seitenabfrage, auch nicht beim Start.
 Bereits sichtbare echte X-Mitteilungen innerhalb von fünf Minuten dürfen beim Verbinden eingereiht werden.
@@ -52,6 +52,13 @@ zu keinem neuen Seitenaufruf. Nach jedem Auftrag wird die X-Seite entladen. Quel
 weitere Aufträge für 15 Minuten; danach wird erst eine neue Mitteilung verarbeitet. Maximal 20 Entwürfe
 je 24 Stunden und 60 Sekunden Abstand bleiben erhalten. Alte `notification_unverified`-Entwürfe werden
 nicht nachträglich als bestätigt markiert. Konto, Datenbank und bestehende Entwürfe bleiben beim lokalen Update erhalten.
+
+Version 0.6.0 ersetzt die Kategorie-Icons durch lokale Kompositionen aus 20 gebündelten surrealen
+Meme-Szenen. Es ist keine neue KI-Generierung pro Post; Szenen können sich wiederholen. Bestehende
+Bilder können mit Sicherung der vorherigen Dateien umgestaltet werden. Der X-Webleser berücksichtigt
+Emoji-Bilder und den eigenen Text zitierender Posts; Quote-Inhalte werden nicht als eigene Quelle
+bestätigt. Die Diagnose nennt die gelesenen und passenden Post-Anzahlen. Keine höhere echte Linkquote
+ohne erneuten Handytest behauptet. Details und aktuelle Tests: [Android 0.6.0](android/README.md#änderungen-in-060-surreale-meme-szenen-und-genauerer-link-abgleich).
 
 Version 0.5.2 korrigiert den Webmodus: Ohne eindeutigen Post-Treffer wird aus vollständigem
 Mitteilungstext ein lokaler Entwurf mit Bild erstellt, ausdrücklich ohne bestätigte Quelle.

@@ -115,19 +115,22 @@ public final class BrowserMonitor extends Service {
                 if(!expectedPage(snapshot.optString("page"))||!expectedPage(web.getUrl()))throw new JSONException("wrong page");
                 boolean signedIn=snapshot.optBoolean("signedIn")&&!snapshot.optBoolean("gated");
                 JSONArray rows=snapshot.optJSONArray("posts");
+                prefs().edit().putString("last_web_match","DOM-Posts: "+(rows==null?0:rows.length())+"; Anmeldung lesbar: "+signedIn).apply();
                 if(!signedIn||rows==null||rows.length()==0){
                     if(attempt<5){handler.postDelayed(()->sample(ticket,attempt+1),2000);return;}
                     if(!signedIn){loginRequired("X-Anmeldung nicht bestätigt. X-Anmeldung öffnen und direkt bei X anmelden.");return;}
                     state("@"+expected+": Post nicht lesbar; lokaler Mitteilungsentwurf wird geprüft");localFallback(current);finishCycle();return;
                 }
-                List<BrowserRules.Post> posts=new ArrayList<>();
+                List<BrowserRules.Post> posts=new ArrayList<>();int contextual=0,truncated=0;
                 long now=System.currentTimeMillis();
                 for(int i=0;i<Math.min(rows.length(),20);i++){
                     JSONObject row=rows.optJSONObject(i);if(row==null)continue;
+                    if(row.optBoolean("context",true))contextual++;if(row.optBoolean("truncated",true))truncated++;
                     BrowserRules.Post post=BrowserRules.post(expected,row.optString("url"),row.optString("text"),row.optString("createdAt"),row.optBoolean("context",true),row.optBoolean("truncated",true),now,0);
                     if(post!=null)posts.add(post);
                 }
                 prefs().edit().putLong("browser_last_read",now).putString("browser_last_account",expected).putString("x_auth_state","observed").apply();
+                prefs().edit().putString("last_web_match","DOM-Posts: "+rows.length()+"; Kontext: "+contextual+"; gekürzt: "+truncated+"; "+NotificationMatch.summary(current,posts,now)).apply();
                 BrowserRules.Post match=NotificationMatch.select(current,posts,now);
                 if(match==null&&attempt<5){handler.postDelayed(()->sample(ticket,attempt+1),2000);return;}
                 if(match==null){state("Kein eindeutiger Post-Link; lokaler Mitteilungsentwurf ohne bestätigte Quelle wird geprüft.");localFallback(current);}
