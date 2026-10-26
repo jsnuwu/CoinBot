@@ -5,6 +5,8 @@
 - Keine manuelle Coin-/Vorschlagserstellung in der Website oder über deren API anbieten.
 - Android-Empfangstest unter `android/`: ausschließlich eigene X-Benachrichtigungen, lokale Verarbeitung,
   keine versteckten Konto-/Wallet-Zugriffe. APK-Build und JVM-Tests ersetzen keinen echten Gerätetest.
+- Benachrichtigungsentwürfe ohne bestätigten Link haben `notification_unverified` / `publishable=false`.
+  Niemals allein aus Anzeigename und Mitteilungstext automatisch veröffentlichen.
 - Aktuelle Kostenanforderung: kostenlos bleiben. Render-Blueprint nur Webservice `plan: free`, keine
   kostenpflichtige Disk/Datenbank/Worker. X als Quelle beibehalten; keine RSS-Umstellung.
 - Der Gratisbetrieb ist ausdrücklich Preview: öffentliche X-Einbettung nur experimentell, keine

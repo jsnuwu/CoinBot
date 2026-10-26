@@ -37,6 +37,21 @@ public final class CoreTest {
         check(Core.metadataLink("tweet_"+fresh).endsWith(fresh),"read explicit tweet notification tag");
         check(Core.metadataLink(fresh).contains("/i/web/status/"),"read structured post ID");
         check(Core.metadataLink("user_"+fresh).isEmpty(),"do not turn user IDs into posts");
+        Set<String> mario=Core.accounts("MarioNawfal,elonmusk,realDonaldTrump");
+        check("marionawfal".equals(Core.notificationAuthor("Mario Nawfal",mario)),"recognize selected notification display name locally");
+        check("marionawfal".equals(Core.notificationAuthor("Mario Nawfal (@MarioNawfal)",mario)),"recognize explicit selected handle");
+        check("realdonaldtrump".equals(Core.notificationAuthor("Donald J. Trump",mario)),"known display alias");
+        check(Core.notificationAuthor("Someone else",mario)==null,"unknown notification author remains rejected");
+        check(Core.notificationAuthor("Mario Nawfal @unselected",mario)==null,"explicit different handle overrides display-name match");
+        check(Core.notificationAuthor("@MarioNawfal and @elonmusk",mario)==null,"ambiguous author stays rejected");
+        check(Core.notificationAuthor("Elon Musk replied",mario)==null,"do not mistake reply title for an author");
+        Core.NotificationDraft local=Core.notificationDraft("Mario Nawfal","A robot on Mars",mario);
+        check(local!=null&&!local.publishable&&local.id.startsWith("notification_"),"notification-only evidence can never authorize publication");
+        check(Core.notificationDraft("Mario Nawfal","A robot on Mars…",mario)==null,"truncated notification does not create draft");
+        check(Core.notificationDraft("Mario Nawfal","",mario)==null,"empty notification does not create draft");
+        check(local.id.equals(Core.notificationDraft("Mario Nawfal","A robot on Mars",mario).id),"repeated notification deduplicates independently of updates");
+        check(!local.id.equals(Core.notificationDraft("Elon Musk","A robot on Mars",mario).id),"separate selected authors have separate local drafts");
+        check(Core.idea(local.text,local.id)!=null,"valid received text reaches local idea generation without X network requests");
         try{Core.accounts("elonmusk,https://evil.test");throw new AssertionError("invalid account accepted");}catch(IllegalArgumentException expected){checks++;}
         System.out.println(checks+" Android core checks passed");
     }

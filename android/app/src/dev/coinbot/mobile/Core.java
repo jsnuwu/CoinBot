@@ -33,6 +33,44 @@ public final class Core {
             this.description = "Independent community meme inspired by " + theme + ". Unofficial; not affiliated with or endorsed by the post author. No promised value or returns.";
         }
     }
+    public static final class NotificationDraft {
+        public final String id, author, text;
+        public final boolean publishable = false;
+        NotificationDraft(String id, String author, String text){this.id=id;this.author=author;this.text=text;}
+    }
+    /** Display-name/notification matching is NOT identity verification. Local drafts only. */
+    public static String notificationAuthor(String title, Set<String> allowed){
+        Matcher explicit=Pattern.compile("@([A-Za-z0-9_]{1,15})(?![A-Za-z0-9_])").matcher(title);
+        Set<String> handles=new HashSet<>();
+        while(explicit.find())handles.add(explicit.group(1).toLowerCase(Locale.ROOT));
+        if(!handles.isEmpty()){
+            if(handles.size()!=1)return null;
+            String h=handles.iterator().next();return allowed.contains(h)?h:null;
+        }
+        String normalized=title.toLowerCase(Locale.ROOT)
+            .replaceFirst("\\s+(posted|tweeted|hat gepostet|hat getwittert)\\s*$", "")
+            .replaceAll("[^a-z0-9_]", "");
+        for(String h:allowed){
+            if(normalized.equals(h.replace("_",""))||normalized.equals(h))return h;
+            if(h.equals("realdonaldtrump")&&(normalized.equals("donaldjtrump")||normalized.equals("donaldtrump")))return h;
+        }
+        return null;
+    }
+    public static boolean completeNotificationText(String text){
+        String value=text.replaceAll("https?://\\S+", "").trim();
+        return !value.isEmpty()&&text.length()<=4000&&!value.endsWith("…")&&!value.endsWith("...");
+    }
+    public static NotificationDraft notificationDraft(String title,String text,Set<String> allowed){
+        String author=notificationAuthor(title,allowed);
+        if(author==null||!completeNotificationText(text))return null;
+        try{
+            String normalized=text.trim().replaceAll("\\s+"," ");
+            byte[] hash=MessageDigest.getInstance("SHA-256").digest((author+"\n"+normalized).getBytes("UTF-8"));
+            StringBuilder id=new StringBuilder("notification_");
+            for(int i=0;i<12;i++)id.append(String.format(Locale.ROOT,"%02x",hash[i]&255));
+            return new NotificationDraft(id.toString(),author,text.trim());
+        }catch(Exception e){throw new IllegalStateException(e);}
+    }
     public static Set<String> accounts(String input) {
         Set<String> result = new LinkedHashSet<>();
         for (String part : input.split(",")) {

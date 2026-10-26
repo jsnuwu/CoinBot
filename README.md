@@ -16,18 +16,21 @@ Verkaufsstrategie oder automatische Creator-Fee-Abholung.
 
 ## Android-Anbindung für den eigenen X-Benachrichtigungsempfang
 
-Unter [`android/`](android/README.md) liegt eine erste installierbare Android-App (Android 8+).
-Sie verarbeitet ausschließlich Benachrichtigungen der eigenen X-App, sucht einen eindeutigen Post-Link,
-prüft Absender/Alter über die öffentliche Einbettung und erstellt Name, Ticker, Beschreibung und PNG
-lokal auf dem Handy. Dadurch ist für diese Verarbeitung kein Render-Server nötig. Keine manuelle
-Coin-Erstellung, keine Wallet-Schlüssel, keine Pump-Anmeldung und noch keine Veröffentlichung.
+Unter [`android/`](android/README.md) liegt die Android-App 0.2 (Android 8+). Sie verarbeitet
+Benachrichtigungen der eigenen X-App und bereitet passende Entwürfe direkt auf dem Handy vor.
+Der erste Benutzerbericht bestätigte empfangene X-Meldungen, aber keinen verwertbaren Post-Link.
+Version 0.2 kann deshalb vollständige Mitteilungstexte mit zugeordnetem Titel auch ohne Link
+als **unverifizierte lokale Entwürfe** verarbeiten. Diese dürfen nicht automatisch veröffentlicht
+werden. Ein bestätigter Post-Link erhält einen getrennten Herkunftsstatus.
 
-APK-Build, Signaturprüfung und 27 reine Java-Prüfungen sind lokal erfolgreich. Es wurde **noch keine
-echte X-Benachrichtigung auf einem physischen Android-Gerät getestet**. Liefert X keinen Link oder
-keinen vollständigen Post-Text, wird angehalten. Die Pump-Kontoverbindung folgt erst mit der vom
-Nutzer später anzulegenden Phantom-Wallet. Die App allein ist noch kein nachgewiesener Auto-Launcher.
-Details zur Installation, zu Androids Benachrichtigungsberechtigung und zu den Grenzen stehen in der
-[Android-Anleitung](android/README.md). GitHub Actions stellt die APK als Build-Artefakt bereit.
+APK-Build, Signaturprüfung und 40 reine Java-Prüfungen bestehen. Version 0.2 wurde noch nicht auf
+dem Handy getestet; die neue Titelzuordnung und der vollständige Ablauf müssen dort geprüft werden.
+Die App zeigt Empfangszähler, Dienstverbindung und Filtergründe; `Diagnose kopieren` enthält keine
+Nachrichtentexte oder Sitzungsschlüssel. Einstellungen und vorhandene Entwürfe bleiben bei der
+lokalen, mit demselben Schlüssel signierten Update-APK erhalten. Keine manuelle Coin-Erstellung,
+keine Wallet-Schlüssel und weiterhin keine Pump-Veröffentlichung in der App.
+Details stehen in der [Android-Anleitung](android/README.md). GitHub Actions baut zusätzlich eine
+separat signierte Test-APK als Artefakt; diese kann eine andere Signatur als der lokale Download haben.
 
 ## Kostenlos ausprobieren
 

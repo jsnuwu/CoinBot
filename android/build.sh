@@ -5,6 +5,7 @@ sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 if [[ -z "$sdk" ]]; then echo 'Set ANDROID_HOME to an Android SDK with platform 36 and build-tools 36.0.0.' >&2; exit 1; fi
 tools="$sdk/build-tools/36.0.0"
 platform="$sdk/platforms/android-36/android.jar"
+rm -rf build/classes build/core-tests
 mkdir -p build/classes
 # No Gradle or third-party runtime dependencies. Compile against the Android SDK.
 javac --release 8 -cp "$platform" -d build/classes app/src/dev/coinbot/mobile/*.java

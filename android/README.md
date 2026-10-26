@@ -1,8 +1,8 @@
-# CoinBot Android – erster Empfangstest
+# CoinBot Android 0.2 – Benachrichtigungsempfang und lokale Entwürfe
 
 Diese App ersetzt den öffentlichen X-Timeline-Poller durch Benachrichtigungen der eigenen X-App.
 Sie benötigt keinen Server und keinen API-Key. Verarbeitung und Entwürfe bleiben auf dem Handy.
-**Diese erste APK veröffentlicht noch keine Coins. Die Pump.fun-Kontoverbindung fehlt weiterhin.**
+**Diese APK veröffentlicht noch keine Coins. Die Pump.fun-Kontoverbindung fehlt weiterhin.**
 
 ## Installation und Einrichtung
 
@@ -24,8 +24,8 @@ Unverwertbare Benachrichtigungstexte werden nicht gespeichert und nicht an einen
 
 ## Was tatsächlich geprüft wird
 
-- Eindeutiger X-Post-Link oder strukturierte Post-ID in den von Android bereitgestellten Textfeldern,
-  Tags oder expliziten `tweet_id`/`status_id`-Feldern; kein Auslesen privater
+- Wenn vorhanden: eindeutiger X-Post-Link oder strukturierte Post-ID in den von Android bereitgestellten
+  Textfeldern, Tags oder expliziten `tweet_id`/`status_id`-Feldern; kein Auslesen privater
   X-Datenbanken, kein automatisches Öffnen des Telefons und keine Umgehung von Anmeldungen.
 - Post höchstens fünf Minuten alt (X-Snowflake-Zeitstempel), Absender aus der eingestellten Liste.
 - Einbettung über `publish.x.com/oembed` liefert dieselbe Post-ID und einen passenden Absender.
@@ -37,9 +37,10 @@ Unverwertbare Benachrichtigungstexte werden nicht gespeichert und nicht an einen
   werden lokal gelöscht. Eine Zugriffssperre von X löst 15 Minuten Wartezeit aus, keine Umgehung.
 
 **Offener Gerätetest:** Es wurde hier kein physisches Android-Gerät und keine echte X-Benachrichtigung
-verwendet. Manche X-/Android-Versionen liefern keinen Link in den verfügbaren Feldern. Dann meldet
-die App genau dies und verarbeitet den Post nicht. Ein bloßer Anzeigename wie „Elon Musk“ gilt nicht
-als verifizierter Absender. Android-Energiesparen, Netz, X-Zustellung und fehlende Link-Daten können
+verwendet. Manche X-/Android-Versionen liefern keinen Link in den verfügbaren Feldern. Version 0.2
+kann dann aus einem vollständig gelieferten Mitteilungstext und einem zur Liste passenden Titel
+einen **unverifizierten lokalen Entwurf** erzeugen. Ein bloßer Anzeigename wie „Elon Musk“ gilt
+weiterhin nicht als verifizierter Absender und darf keine automatische Veröffentlichung erlauben. Android-Energiesparen, Netz, X-Zustellung und fehlende Link-Daten können
 den Ablauf verzögern oder ganz verhindern. Ein Sekunden-Autobot ist mit der APK noch nicht nachgewiesen.
 Ein automatisches Ranking aller gerade trendenden X-Posts ist ebenfalls nicht enthalten; es werden
 die persönlich gewählten Accounts beobachtet.
@@ -68,3 +69,31 @@ Für spätere dauerhafte Installationen muss ein eigener stabiler Release-Schlü
 
 Benachrichtigungszustellung, Android-Oberfläche und tatsächliche X-Link-Verfügbarkeit müssen auf dem
 Gerät getestet werden. Die JVM-Prüfungen prüfen ausschließlich Auswahl-, Zeit-, Quellen- und Themenregeln.
+
+## Änderungen in 0.2
+
+Der erste echte Benutzerbericht bestätigte den Empfang, aber keinen passenden Link. Die bisherige
+Link-Pflicht verhinderte dabei jedes Ergebnis. Deshalb ist nun ein separater lokaler Ablauf für
+vollständige Mitteilungstexte eingebaut. Titel werden nur zu ausdrücklich ausgewählten Handles
+zugeordnet; bekannte Anzeigenamen und explizite Handles werden erkannt, unbekannte/mehrdeutige
+Titel sowie gekürzte/fehlende Texte bleiben ausgeschlossen. Es wird kein frei erfundener Post-Link
+angelegt. Diese Herkunft bleibt in SQLite als `notification_unverified` erhalten und das Core-Objekt
+führt `publishable=false`. Solche Entwürfe sind ausschließlich zur lokalen Ansicht bestimmt.
+
+Absender-Zuordnung anhand eines Titels ist keine Identitätsprüfung. Auch die Vollständigkeit des
+Benachrichtigungstexts ist nur anhand vorhandener Kürzungszeichen prüfbar. Nur ein separat bestätigter
+Post-Link erhält `post_link_verified`. Ein gespeicherter Entwurf ist weiterhin kein Pump.fun-Coin.
+
+`Diagnose kopieren` enthält Sitzungs-/Zustandsdaten, gewählte Handles, Zähler und Fehlergründe,
+aber keine Benachrichtigungstexte, Privatnachrichten, Wallet- oder Sitzungsschlüssel. Sammelmeldungen,
+Nachrichtenformate, fehlende Absender und Themenfilter sind nun jeweils sichtbar. Bei erteiltem
+Zugriff kann die App den Systemdienst neu verbinden und aktuell sichtbare X-Mitteilungen innerhalb
+des Fünf-Minuten-Fensters prüfen. Ältere Posts werden nicht nachgeholt.
+
+Die SQLite-Migration von Version 1 auf 2 fügt nur die Herkunftsspalte hinzu. Bestehende Einstellungen,
+Entwürfe und Bilder werden nicht gelöscht. Die hier bereitgestellte lokale Update-APK wird gegen die
+vorherige lokale APK auf gleichen Signierer geprüft; bei dieser Datei ist keine Deinstallation nötig.
+CI-APKs mit frisch erzeugtem Test-Schlüssel sind davon getrennt (siehe Hinweis zum Signieren oben).
+
+Build und **40 reine Core-Prüfungen** sind getestet. Der vollständige Empfangsablauf und die neue
+Titelzuordnung müssen weiterhin auf dem Handy mit einer echten X-Benachrichtigung geprüft werden.
