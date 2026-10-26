@@ -60,7 +60,9 @@ Replies, Retweets, erkennbare Edits/Quotes und sensible Inhalte werden nicht als
 Die öffentliche Ansicht enthält nicht zwingend alle Informationen des offiziellen Streams.
 Account-Abfragen laufen parallel. Bei einem Fehler pausiert nur der betroffene Account (15–60 Minuten);
 andere werden weiter in ihrem Intervall abgefragt. Die Oberfläche zeigt den Status und nächsten
-Prüfzeitpunkt je Account. Beim Lesetest am 25.10.2026 war Trump erreichbar, der Musk-Zugriff wurde
+Prüfzeitpunkt je Account sowie den konkreten Quellenfehler (HTTP-Status, Timeout, Netzwerkfehler
+oder nicht lesbare Antwort). Die Startzeit der aktuellen Sitzung ist sichtbar. Sie belegt keinen
+lückenlosen Nachtbetrieb: Nach Sleep/Neustart können historische Daten fehlen. Beim Lesetest am 25.10.2026 war Trump erreichbar, der Musk-Zugriff wurde
 von X abgewiesen. Die Konfiguration eines Accounts ist somit kein Nachweis seiner Erreichbarkeit.
 Innerhalb eines Accounts bekommen die neuesten Posts zuerst Zugriff auf das Vorschlagslimit.
 Voreinstellung im Render-Blueprint: `@realDonaldTrump` und `@elonmusk`, jeweils mit festgelegter
@@ -284,7 +286,7 @@ Budgetgrenzen, Neustarts/Deduplizierung, Kandidatenfilter, falsche Transaktionsd
 Transfers/Käufe, Prioritätsgebühren, Simulation, Sendetimeouts und Finalisierung. GitHub Actions führt
 Tests, Linter und Offline-Demo aus.
 
-Lokal verifiziert: **108 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
+Lokal verifiziert: **115 Tests bestanden**, Ruff ohne Befund, Offline-Demo erfolgreich und Python-Wheel
 inklusive des fixierten Pump-IDL-Ausschnitts gebaut. Der Blueprint wurde gegen das offizielle Render-Schema
 validiert; manuelle Vorschläge ohne Netzwerkzugriff, experimenteller X-Reader und Web-Endpunkte getestet.
 Die öffentliche X-Ansicht wurde außerdem separat ohne API-Key gelesen (20 gelieferte Posts).

@@ -12,7 +12,9 @@ from .models import Post, utcnow
 
 
 class PublicXError(Exception):
-    pass
+    def __init__(self, code, *, http_status=None):
+        super().__init__(code)
+        self.http_status = http_status
 
 
 class EmbedData(HTMLParser):
@@ -75,9 +77,9 @@ async def read_timeline(client, handle, author_id):
     url = f"https://syndication.twitter.com/srv/timeline-profile/screen-name/{handle}"
     async with client.stream("GET", url, headers={"User-Agent": "CoinBot-PublicPreview/0.1"}) as response:
         if response.status_code in (401, 403, 429):
-            raise PublicXError("public_access_limited")
+            raise PublicXError("public_access_limited", http_status=response.status_code)
         if response.status_code != 200:
-            raise PublicXError("public_view_unavailable")
+            raise PublicXError("public_view_unavailable", http_status=response.status_code)
         body = bytearray()
         async for chunk in response.aiter_bytes():
             body.extend(chunk)
@@ -95,7 +97,8 @@ class PublicMonitor:
         self.account_state = {handle: {"handle": handle, "status": "starting"} for handle, _ in self.accounts}
         self.recent = {}
         self.state = {"status": "starting" if self.accounts else "not_configured", "checks": 0,
-                      "last_checked": None, "latest_post_at": None, "accounts": [], "recent_posts": []}
+                      "started_at": utcnow().isoformat(), "last_checked": None, "latest_post_at": None,
+                      "accounts": [], "recent_posts": []}
 
     async def check(self, client, *, now=None):
         now = time.time() if now is None else now
@@ -106,10 +109,17 @@ class PublicMonitor:
         async def read(handle, author_id):
             try:
                 return handle, await read_timeline(client, handle, author_id), None
-            except (PublicXError, httpx.HTTPError, UnicodeError):
-                return handle, [], "unavailable"
+            except PublicXError as exc:
+                return handle, [], {"status": "unavailable", "error_code": str(exc),
+                                    "http_status": exc.http_status}
+            except httpx.TimeoutException:
+                return handle, [], {"status": "unavailable", "error_code": "request_timeout"}
+            except httpx.HTTPError:
+                return handle, [], {"status": "unavailable", "error_code": "network_error"}
+            except UnicodeError:
+                return handle, [], {"status": "unavailable", "error_code": "invalid_response_encoding"}
             except Exception:
-                return handle, [], "processing_error"
+                return handle, [], {"status": "processing_error", "error_code": "reader_error"}
 
         # One limited account must not serialize network reads or stall another account's cadence.
         for handle, posts, error in await asyncio.gather(*(read(h, a) for h, a in due)):
@@ -126,9 +136,9 @@ class PublicMonitor:
                                        "result": outcome})
                     self.recent[handle] = recent[:10]
                 except Exception:
-                    error = "processing_error"
+                    error = {"status": "processing_error", "error_code": "pipeline_error"}
             if error:
-                account = {"handle": handle, "status": error}
+                account = {"handle": handle, **error}
                 self.failures[handle] += 1
                 delay = min(900 * 2 ** min(self.failures[handle] - 1, 2), 3600)
             else:

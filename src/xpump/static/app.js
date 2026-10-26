@@ -26,13 +26,16 @@ async function loadStatus() {
     el('feed-status').textContent = labels[monitor.status] || 'Unbekannter Status';
     el('feed-detail').textContent = `Experimentelle Abfrage alle ${data.poll_seconds} Sekunden, solange der Dienst läuft. ${monitor.checks} Prüfungen seit Start.`;
     el('last-check').textContent = date(monitor.last_checked);
+    el('started-at').textContent = date(monitor.started_at);
     el('latest-post').textContent = date(monitor.latest_post_at);
     el('feed-error').textContent = monitor.status === 'degraded'
       ? 'Mindestens ein Account ist nicht verfügbar. Erreichbare Accounts werden weiter geprüft. Keine bezahlte Ersatz-API; ältere Posts können veraltet sein.' : '';
     el('accounts').replaceChildren();
     const accountLabels = {readable:'Daten geliefert',no_posts_returned:'Keine Posts geliefert',unavailable:'X-Zugriff derzeit nicht verfügbar',processing_error:'Verarbeitung fehlgeschlagen',starting:'Prüfung startet'};
+    const errorLabels = {public_access_limited:'X schränkt den öffentlichen Zugriff ein',public_view_unavailable:'Öffentliche Ansicht nicht lesbar',public_view_too_large:'Antwort zu groß',request_timeout:'Zeitüberschreitung',network_error:'Netzwerkfehler',invalid_response_encoding:'Unlesbare Antwort',reader_error:'Lesefehler',pipeline_error:'Vorschlagsverarbeitung fehlgeschlagen'};
     for (const account of monitor.accounts || []) {
-      el('accounts').append(paragraph(`@${account.handle}: ${accountLabels[account.status] || account.status}. Nächste Prüfung: ${date(account.next_check_at)}`, 'muted small'));
+      const reason = account.error_code ? ` ${errorLabels[account.error_code] || 'Quelle nicht lesbar'}${account.http_status ? ` (HTTP ${account.http_status})` : ''}.` : '';
+      el('accounts').append(paragraph(`@${account.handle}: ${accountLabels[account.status] || account.status}.${reason} Nächste Prüfung: ${date(account.next_check_at)}`, 'muted small'));
     }
     el('posts').replaceChildren();
     for (const post of (monitor.recent_posts || []).slice(0, 5)) {
