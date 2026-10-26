@@ -34,7 +34,8 @@ final class XReader {
             if (confirmed == null || !confirmed.id.equals(candidate.id)) throw new SourceError("X-Post nicht bestätigt");
             Matcher paragraph = Pattern.compile("<p(?:\\s[^>]*)?>(.*?)</p>", Pattern.DOTALL).matcher(payload.optString("html"));
             if (!paragraph.find()) throw new SourceError("Kein lesbarer Post-Text");
-            String value = Html.fromHtml(paragraph.group(1), Html.FROM_HTML_MODE_LEGACY).toString().trim();
+            String body = paragraph.group(1).replaceAll("(?is)<a\\b[^>]*>.*?</a>", " ");
+            String value = Html.fromHtml(body, Html.FROM_HTML_MODE_LEGACY).toString().trim();
             String withoutUrls=value.replaceAll("https?://\\S+", "").trim();
             if (value.isEmpty() || withoutUrls.endsWith("…") || withoutUrls.endsWith("...")) throw new SourceError("X liefert keinen vollständigen Post-Text");
             return value;
