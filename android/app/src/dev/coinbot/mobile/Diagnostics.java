@@ -15,11 +15,11 @@ final class Diagnostics {
     static String text(Context context,boolean access){
         SharedPreferences p=context.getSharedPreferences("settings",0);
         long when=p.getLong("last_event_time",0);
-        return "CoinBot 0.5.0\n"+summary(context)+
+        return "CoinBot 0.5.1\n"+summary(context)+
             "\nBenachrichtigungszugriff: "+(access?"erteilt":"fehlt")+
             "\nMitteilungsdienst: "+(XListener.attached()?"verbunden":"nicht verbunden")+
             "\nMitteilungsausloeser: "+(p.getBoolean("enabled",false)?"eingeschaltet":"aus")+
-            "\nAccounts: "+p.getString("accounts","realDonaldTrump,elonmusk")+
+            "\nAccounts: "+p.getString("accounts",Core.DEFAULT_ACCOUNTS)+
             "\nX-Meldungen: "+p.getLong("diag_received",0)+
             "\nSammelmeldungen ignoriert: "+p.getLong("diag_summary",0)+
             "\nNachrichtenformat ignoriert: "+p.getLong("diag_private",0)+
@@ -32,6 +32,8 @@ final class Diagnostics {
             "\nLetzter Quellenfehler: "+p.getString("last_source_error","keiner")+
             "\nEntwuerfe aus Mitteilung (unverifiziert): "+p.getLong("diag_draft_notification",0)+
             "\nEntwuerfe mit bestaetigtem Link: "+p.getLong("diag_draft_verified",0)+
+            "\nBildreparaturen: "+p.getLong("diag_image_repaired",0)+
+            "\nBildfehler: "+p.getLong("diag_image_failed",0)+
             "\nLetzter Status: "+p.getString("last_event","Noch keine X-Meldung")+
             (when>0?"\nZeit: "+DateFormat.getDateTimeInstance().format(new Date(when)):"")+
             "\nPump.fun: nicht verbunden; keine Veroeffentlichungen";

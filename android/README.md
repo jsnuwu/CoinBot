@@ -1,4 +1,4 @@
-# CoinBot Android 0.5.0 – Übersicht, Entwürfe und Einstellungen
+# CoinBot Android 0.5.1 – lokale Bilder und übersichtliche Entwürfe
 
 Version 0.4.1 korrigiert den Umfang von 0.4.0: **Keine regelmäßige Profilbeobachtung.** Eine eigene
 X-Handy-Mitteilung ist der einzige automatische Auslöser. Login und Link-Auflösung laufen lokal auf
@@ -11,7 +11,7 @@ Zustand und nächste Aktion: Mitteilungszugriff erlauben, Dienst-Mitteilung erla
 Empfang starten, verbinden oder pausieren. Neue Nutzer werden so durch die Einrichtung geführt.
 Bestehende Web-Sitzungen werden nicht bloß wegen des Updates als ungültig behandelt.
 
-1. Die Update-APK über 0.4.1 installieren. Lokale Signatur, Konto, Einstellungen und Entwürfe bleiben erhalten.
+1. Die Update-APK über 0.4.1 installieren, sofern Android den Signierer akzeptiert (siehe Update-Hinweis zu 0.5.1 unten). Nicht vorher deinstallieren. Konto, Einstellungen und Entwürfe bleiben beim Update erhalten.
 2. Auf der Übersicht die angebotene nächste Aktion ausführen. Die Anmeldung bleibt direkt in der
    X-Webseite. Nach **Empfang starten** kehrt die App zur Übersicht zurück.
 3. In der eigenen X-App bei den eingestellten Accounts die Post-Glocke aktivieren.
@@ -244,3 +244,53 @@ JVM-Fixtures, nicht Bestandteil der APK und kein Nachweis über tatsächlich von
 Die lokale Update-APK verwendet denselben Signierer wie 0.3.1; Einstellungen und Daten bleiben
 erhalten. Auf dem echten Handy muss eine neue X-Mitteilung geprüft und die neue Linkdiagnose
 angesehen werden. Die Pump-Anmeldung ist weiterhin nicht implementiert.
+
+## Änderungen in 0.5.1: zuverlässige lokale Entwurfsbilder
+
+Die kostenlose Grundlage bleibt Android Canvas, ohne externe Bild-API oder KI-Abonnement.
+19 Themenmotive erhalten individuelle Farbpaletten, drei Hintergrundkompositionen und drei
+Dekorationsarten. Der tatsächlich vorhandene Quelltext wählt zusätzlich Flugzeug statt Zug,
+Krypto-Münzen statt Balkendiagramm, Schnee/Sonne statt Regenwolke oder eine Wahlurne statt Parlament.
+Das ist eine lokale Heuristik, keine semantisch fehlerfreie KI. Name/Ticker sind ergänzende Beschriftung;
+das Hauptmotiv wird gezeichnet. Bestehende gültige Bilder werden beim Update nicht ersetzt.
+
+PNG und JSON werden im internen App-Speicher zuerst temporär geschrieben, synchronisiert und atomar
+ersetzt. Vor Erfolg prüft CoinBot PNG-Signatur, Abmessungen (768 × 768), Chunk-Prüfsummen, Dateiende
+und Android-Decodierung; eine fehlgeschlagene PNG-Komprimierung ist ein Fehler. Metadaten enthalten
+Bilddateiname, Bildstatus und bei neu gezeichneten Bildern Generator, Thema, konkretes Motiv und Größe.
+Quelltext und Quellenbelege werden vor der Bilderstellung gespeichert. Scheitert diese, bleibt der
+Entwurf zur Reparatur erhalten; ein Speicherfehler erzeugt keinen zusätzlichen Quellen-Fallback.
+
+Beim Öffnen der App/Detailansicht und beim Verbinden des Mitteilungsempfängers prüft ein lokaler
+Hintergrundauftrag bestehende Entwürfe. Fehlende oder beschädigte Bilder werden aus deren gespeicherten
+Feldern und vorhandenem Quelltext ergänzt, ohne X-Abfrage, neue Entwürfe oder Vorschlagslimit-Verbrauch.
+Namen, Ticker, Beschreibung, Zeit, Quellenlinks und Verifizierungsstatus bleiben erhalten. Fehlende
+JSON-Dateien werden aus vorhandenen Daten rekonstruiert; verlorene Originaltexte sind nicht wiederherstellbar.
+Eine beschädigte vorhandene JSON-Datei wird wegen möglicher Quellenbelege **nicht überschrieben**:
+Das Bild kann ergänzt werden, aber die Metadaten bleiben sichtbar fehlerhaft. Diagnosezähler und
+Detailansicht zeigen Fehler; dort lässt sich die Prüfung erneut starten. Cache-Revisionen aktualisieren
+reparierte Vorschaubilder. Die Detailansicht bietet eine zusätzliche Großansicht. Es wird kein
+Bilderfolg allein aus einem vorhandenen Datenbankeintrag abgeleitet.
+
+Schema 4 ergänzt ausschließlich Bildstatus und Bildrevision. Einstellungen, lokale X-Anmeldung und
+Entwürfe bleiben erhalten. Die acht gewünschten Accounts sind Vorgabe für Neuinstallationen;
+bestehende gespeicherte Account-Auswahl wird nicht überschrieben. Der zurückgestellte Komma-Parser
+bleibt unverändert. Keine Profil-Rundläufe, X-API, Pump-Veröffentlichung oder Wallet-Aktivierung.
+
+Verifiziert: 137 Python-Tests, Ruff, Offline-Demo, 126 Core-, 15 Mitteilungsmetadaten-, 26 Browser-Regel-,
+25 Mitteilungszuordnungs-, 18 UI-Zustands- und 18 DOM-Fixture-Prüfungen sowie 37 neue Datei-/Reparatur-
+und Motivprüfungen. `bash android/test-assets.sh` nutzt Host-PNGs, eine In-Memory-Datenbank und eine
+SHA-256-fixierte JSON-Testbibliothek; es prüft Dateifehler und Metadatenerhalt, **nicht** Android Canvas,
+SQLite-Migration auf dem Handy oder die tatsächliche UI. Die APK kompiliert gegen Android 36.
+
+Der vorhandene lokale `android/build/debug.jks` wird weiterverwendet; das Zertifikat stimmt mit der
+vor dem Build vorhandenen lokalen APK überein (SHA-256
+`32c5dc55280e82cafdd10d731b142ed73fd033f6b7be56073ba44964e1895497`). Eine 0.4.1-APK liegt
+hier nicht separat zum erneuten Vergleich vor. Android akzeptiert ein Update nur bei gleichem
+Signierer. Bei Signaturkonflikt **nicht deinstallieren**, da sonst lokale Daten verloren gehen.
+CI-Artefakte mit frisch erzeugtem Testschlüssel sind keine Ersatz-Update-Datei.
+
+Auf echtem Android noch prüfen: Update von der installierten 0.4.1, Erhalt von Einstellungen/Sitzung/
+Entwürfen, automatische Ergänzung alter fehlender Bilder, neue echte X-Mitteilung → Motiv/PNG/JSON →
+Vorschau/Großansicht, Verhalten bei vollem Speicher sowie Neustart während der Speicherung.
+Es fand kein echter Handy-, Login- oder Pump.fun-Test statt.

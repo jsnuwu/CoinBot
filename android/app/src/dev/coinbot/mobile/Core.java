@@ -8,6 +8,7 @@ import java.util.regex.*;
 /** Pure local selection rules. No wallet or transaction methods. */
 public final class Core {
     private Core() {}
+    public static final String DEFAULT_ACCOUNTS="realDonaldTrump,elonmusk,cz_binance,FoxNews,VitalikButerin,nytimes,TheRoaringKitty,MarioNawfal";
     public static final long MAX_AGE_MS = 300_000;
     private static final Pattern URL = Pattern.compile("https://(?:x\\.com|twitter\\.com)/(?:(?:i/web|i)/status/|([A-Za-z0-9_]{1,15})/status/)([0-9]{1,19})(?![0-9])(?:[/?#][^\\s<>\"']*)?");
     private static final Pattern PRIVATE_CONTENT = Pattern.compile("\\b(seed phrase|recovery phrase|private key)\\b|\\b(password|api[_ -]?key)\\s*[:=]", Pattern.CASE_INSENSITIVE);

@@ -22,7 +22,7 @@ fehlende Berechtigungen und Anmeldung; bloße Dienstbereitschaft wird nicht als 
 angezeigt. Entwürfe sind nach bestätigtem Post-Link filterbar und öffnen eine eigene Detailansicht.
 Technische Diagnose ist erst bei Bedarf sichtbar. Mehr dazu: [UI/UX-Konzept](docs/android-ui.md).
 
-Unter [`android/`](android/README.md) liegt die Android-App **0.5.0** (Android 8+). Ihr Auslöser ist
+Unter [`android/`](android/README.md) liegt die Android-App **0.5.1** (Android 8+). Ihr Auslöser ist
 **ausschließlich eine eigene X-Handy-Mitteilung**. Die Profil-Rundläufe aus 0.4.0 wurden nach der
 Nutzerkorrektur entfernt: Ohne Mitteilung keine automatische X-Seitenabfrage, auch nicht beim Start.
 Bereits sichtbare echte X-Mitteilungen innerhalb von fünf Minuten dürfen beim Verbinden eingereiht werden.
@@ -53,10 +53,18 @@ weitere Aufträge für 15 Minuten; danach wird erst eine neue Mitteilung verarbe
 je 24 Stunden und 60 Sekunden Abstand bleiben erhalten. Alte `notification_unverified`-Entwürfe werden
 nicht nachträglich als bestätigt markiert. Konto, Datenbank und bestehende Entwürfe bleiben beim lokalen Update erhalten.
 
-Verifiziert: **137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-Regel-, 25 Mitteilungs-/Zuordnungs-
-18 DOM-Fixture- und 18 UX-Zustandsprüfungen**, Ruff, Offline-Demo, APK-Build und Signaturprüfung. Fixtures sind kein
-Beweis echter X-Zustellung. Die lokale Update-APK hat denselben Signierer wie 0.4.1; CI-APKs können
-einen anderen Test-Schlüssel verwenden. Details: [Android-Anleitung](android/README.md).
+Version 0.5.1 sichert die lokale Bildkette ab: variierte Themenzeichnungen mit zusätzlichen
+inhaltlichen Motiven, geprüfte atomare PNG-/JSON-Speicherung, automatische Reparatur fehlender oder
+beschädigter Bilder und sichtbare Fehler statt leerer Vorschauen. Bestehende Quellen werden nicht
+überschrieben oder aufgewertet. Die acht gewünschten Accounts sind nur Vorgabe für Neuinstallationen.
+Der zurückgestellte Account-Parser bleibt unverändert.
+
+Verifiziert: **137 Python-Tests, 126 Core-, 15 Metadaten-, 26 Browser-Regel-, 25 Mitteilungs-/Zuordnungs-,
+18 DOM-Fixture-, 18 UX-Zustands- und 37 Datei-/Reparatur-/Motivprüfungen**, Ruff, Offline-Demo,
+APK-Build und Signaturprüfung. Die neuen Tests verwenden Host-Grafik-/Datenbank-Doubles, keine echte
+Android-Grafik oder SQLite-Instanz. Der verfügbare lokale Signierschlüssel bleibt erhalten; eine
+0.4.1-APK liegt hier nicht zum erneuten Vergleich vor. Keine Handytests dieser Änderung.
+Details und Update-Hinweise: [Android-Anleitung](android/README.md#änderungen-in-051-zuverlässige-lokale-entwurfsbilder).
 
 ## Kostenlos ausprobieren
 

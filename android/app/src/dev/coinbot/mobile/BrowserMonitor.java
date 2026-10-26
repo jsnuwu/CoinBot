@@ -95,7 +95,7 @@ public final class BrowserMonitor extends Service {
         long now=System.currentTimeMillis();
         if(now<blockedUntil){inbox.clear();return;}
         current=inbox.poll(now);if(current==null)return;
-        if(!Core.accounts(prefs().getString("accounts","realDonaldTrump,elonmusk")).contains(current.author)){finishCycle();return;}
+        if(!Core.accounts(prefs().getString("accounts",Core.DEFAULT_ACCOUNTS)).contains(current.author)){finishCycle();return;}
         account=current.author;busy=true;scheduled=false;int ticket=++generation;
         state("looking","Sucht ausschließlich den Post aus der X-Mitteilung von @"+account);
         web.loadUrl("https://x.com/"+account+(current.postId.isEmpty()?"":"/status/"+current.postId));
@@ -142,12 +142,12 @@ public final class BrowserMonitor extends Service {
     private void prepare(BrowserRules.Post post){
         if(!prefs().getBoolean("browser_enabled",false)||!Core.fresh(post.id,System.currentTimeMillis()))return;
         try(LocalStore store=new LocalStore(this)){
-            if(!Core.accounts(prefs().getString("accounts","realDonaldTrump,elonmusk")).contains(post.author))return;
+            if(!Core.accounts(prefs().getString("accounts",Core.DEFAULT_ACCOUNTS)).contains(post.author))return;
             store.prune();if(!store.claimBrowser(post))return;
             Core.Idea idea=BrowserRules.idea(post);
             if(idea==null){store.finish(post.id,"Kein brauchbares Thema oder vertraulicher Inhalt",null);return;}
-            if(DraftWriter.save(this,store,post.id,idea,post.url,true,"x_browser_linked",post))Diagnostics.note(this,"draft_browser","Entwurf mit Originalpost: "+idea.name);
-        }catch(Exception e){Diagnostics.note(this,"source_failed","Browser-Entwurf konnte nicht lokal gespeichert werden");}
+            if(DraftWriter.save(this,store,post.id,idea,post.url,true,"x_browser_linked",post,null))Diagnostics.note(this,"draft_browser","Entwurf mit Originalpost: "+idea.name);
+        }catch(Exception e){Diagnostics.note(this,null,"Lokale Entwurfsspeicherung fehlgeschlagen; Bildstatus im Entwurf prüfen");}
     }
     private void blankPage(){if(web!=null){web.stopLoading();web.loadUrl("about:blank");}}
     private void finishCycle(){busy=false;scheduled=false;current=null;++generation;blankPage();schedule(0);}

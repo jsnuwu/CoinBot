@@ -7,14 +7,21 @@ import java.util.*;
 
 final class LocalStore extends SQLiteOpenHelper {
     private final Context context;
-    LocalStore(Context context) { super(context, "coinbot.db", null, 3); this.context=context.getApplicationContext(); }
+    LocalStore(Context context) { super(context, "coinbot.db", null, 4); this.context=context.getApplicationContext(); }
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE posts (id TEXT PRIMARY KEY,url TEXT,time INTEGER,status TEXT,name TEXT,ticker TEXT,theme TEXT,description TEXT,source TEXT NOT NULL DEFAULT 'legacy_link',topic_version INTEGER NOT NULL DEFAULT 3)");
+        db.execSQL("CREATE TABLE posts (id TEXT PRIMARY KEY,url TEXT,time INTEGER,status TEXT,name TEXT,ticker TEXT,theme TEXT,description TEXT,source TEXT NOT NULL DEFAULT 'legacy_link',topic_version INTEGER NOT NULL DEFAULT 3,image_status TEXT NOT NULL DEFAULT 'unchecked',image_revision INTEGER NOT NULL DEFAULT 0)");
         db.execSQL("CREATE INDEX posts_time ON posts(time)");
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if(oldVersion<4){
+            db.execSQL("ALTER TABLE posts ADD COLUMN image_status TEXT NOT NULL DEFAULT 'unchecked'");
+            db.execSQL("ALTER TABLE posts ADD COLUMN image_revision INTEGER NOT NULL DEFAULT 0");
+        }
         if(oldVersion<2)db.execSQL("ALTER TABLE posts ADD COLUMN source TEXT NOT NULL DEFAULT 'legacy_link'");
         if(oldVersion<3)db.execSQL("ALTER TABLE posts ADD COLUMN topic_version INTEGER NOT NULL DEFAULT 2");
+    }
+    void imageStatus(String id,String status){
+        getWritableDatabase().execSQL("UPDATE posts SET image_status=?,image_revision=image_revision+1 WHERE id=?",new Object[]{status,id});
     }
     boolean claim(Core.Candidate candidate) {
         ContentValues values = new ContentValues(); values.put("id", candidate.id); values.put("url", candidate.url);
@@ -72,7 +79,7 @@ final class LocalStore extends SQLiteOpenHelper {
         return result;
     }
     List<Map<String,String>> ready(){return rows("SELECT * FROM posts WHERE name IS NOT NULL ORDER BY time DESC",null);}
-    String readyVersion(){try(Cursor cursor=getReadableDatabase().rawQuery("SELECT COUNT(*),MAX(time) FROM posts WHERE name IS NOT NULL",null)){cursor.moveToFirst();return cursor.getLong(0)+":"+cursor.getLong(1);}}
+    String readyVersion(){try(Cursor cursor=getReadableDatabase().rawQuery("SELECT COUNT(*),MAX(time),SUM(image_revision) FROM posts WHERE name IS NOT NULL",null)){cursor.moveToFirst();return cursor.getLong(0)+":"+cursor.getLong(1)+":"+cursor.getLong(2);}}
     Map<String,String> find(String id){List<Map<String,String>> rows=rows("SELECT * FROM posts WHERE id=?",new String[]{id});return rows.isEmpty()?null:rows.get(0);}
     private List<Map<String,String>> rows(String sql,String[] args){
         List<Map<String,String>> result=new ArrayList<>();
